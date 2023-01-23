@@ -24,7 +24,7 @@ export interface Binding extends Expr {
 
 export interface Function extends Expr {
 	type: NodeType.Function;
-	param: string[];
+	param: Expr;
 	body: Expr;
 }
 
@@ -36,7 +36,7 @@ export interface LetExpr extends Expr {
 
 export interface WithExpr extends Expr {
 	type: NodeType.WithExpr;
-	set: Set;
+	env: Expr;
 	body: Expr;
 }
 
