@@ -1,4 +1,4 @@
-import { tokenize } from "./frontend/lexer.ts";
+import Parser from "./frontend/parser.ts";
 
 repl();
 
@@ -11,8 +11,9 @@ function repl() {
 			Deno.exit(1);
 		}
 
-		// produce tokens
-		const tokens = tokenize(input);
-		console.log(tokens);
+		const parser = new Parser();
+		// produce ast
+		const ast = parser.parse(input);
+		console.log(ast);
 	}
 }
