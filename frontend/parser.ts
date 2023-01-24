@@ -41,7 +41,7 @@ export default class Parser {
 		const token = this.tokens.shift();
 		if (!token || token.type != type) {
 			console.error("tokens: ", this.tokens);
-			throw `Parsing failed: ${err}. Got: ${token.value}, Expecting: ${type}`;
+			throw `Parsing failed: ${err}. Got '${token.value}' but expecting '${type}'`;
 		}
 		return token;
 	}	
@@ -106,7 +106,7 @@ export default class Parser {
 	private parse_binding(): BindingN {
 		const identifier = this.parse_identifier();
 		this.expect(TokenType.Equal, "Binding must contain '='");
-		const value = this.parse_term();
+		const value = this.parse_simple_expr();
 		this.expect(TokenType.Semicolon, "Binding must end in ';'");
 		return {
 			type: NodeType.Binding,
