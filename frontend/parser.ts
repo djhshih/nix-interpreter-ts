@@ -40,6 +40,7 @@ export default class Parser {
 	private expect(type: TokenType, err: any): Token {
 		const token = this.tokens.shift();
 		if (!token || token.type != type) {
+			console.error("tokens: ", this.tokens);
 			throw `Parsing failed: ${err}. Got: ${token.value}, Expecting: ${type}`;
 		}
 		return token;
@@ -83,11 +84,14 @@ export default class Parser {
 		switch (this.at().type) {
 			case TokenType.Identifier: {
 				env = this.parse_identifier();
+				break;
 			}
 			case TokenType.OpenBrace: {
 				env = this.parse_set();
+				break;
 			}
 			default:
+				console.error("tokens: ", this.tokens);
 				throw "With expression must begin with an identifier or set";
 		}
 		this.expect(TokenType.Semicolon, "With expression must be delimited by ';'");
@@ -235,7 +239,7 @@ export default class Parser {
 				return this.parse_group();
 
 			default:
-				console.log(this.tokens);
+				console.error("tokens: ", this.tokens);
 				throw "Unexpected token found: " + this.at().value;
 		}
 	}
