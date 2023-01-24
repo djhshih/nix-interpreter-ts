@@ -102,9 +102,31 @@ export function tokenize(s: string): Token[] {
 			}
 
 			if ( ss2 == "''" ) {
-				// TODO
-				let str = "";
-				tokens.push( token(str, TokenType.String) );
+				if (ss.length > 2) {
+					let end = -1;
+					for (let i = 2; i < ss.length; i++) {
+						if (ss[i] == "'" && ss[i-1] == "'") {
+							end = i-1;
+							break;
+						}
+					}
+					// construct string, ignore first and last character
+					if (end < 0) {
+						throw "Unexpected EOF when searching for matching ''";
+					} else if (end > 2) {
+						// strip leading whitespace for first line and
+						// before each line but preserving the lines
+						let str = ss.slice(2, end).join("")
+							.replace(/^\s+/, "").replace(/\n\s+/g, "\n");
+						tokens.push( token(str, TokenType.String) );
+					} else {
+						tokens.push( token("", TokenType.String) );
+					}
+					// remove consumed characters, including matching quotes
+					ss = ss.slice(end + 2);
+				} else {
+					throw "Last characters are an unmatched ''";
+				}
 				continue;
 			}
 		}
@@ -128,7 +150,7 @@ export function tokenize(s: string): Token[] {
 					tokens.push( token("", TokenType.String) );
 				}
 				// remove consumed characters, including matching quotes
-				ss = ss.slice(end + 1);
+				ss = ss.slice(end + 3);
 			} else {
 				throw "Last character is an unmatched \"";
 			}
