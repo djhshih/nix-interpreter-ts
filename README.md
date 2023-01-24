@@ -1,4 +1,10 @@
-# Interpreter for the Nix language
+# Nix interpreter in Typescript
+
+[Nix](https://nixos.org/manual/nix/stable/language/index.html)
+is a functional domain-specific language that is useful for
+package management.
+This repository aims to implement a prototype interpreter for
+Nix using Typescript.
 
 ## Requirement
 
@@ -9,7 +15,7 @@ typescript 4.9
 
 ## Progress
 
-Lexer: almost
+Lexer: almost (requires string optimization)
 Parser: almost
 Interpreter: pending
 
