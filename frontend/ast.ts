@@ -56,8 +56,8 @@ export interface MemberExprN extends ExprN {
 
 export interface CallExprN extends ExprN {
 	type: NodeType.CallExpr;
+	fn: ExprN;
 	arg: ExprN;
-	function: FunctionN;
 }
 
 export interface ListN extends ExprN {

@@ -164,14 +164,14 @@ export default class Parser {
 	}
 
 	private parse_multiplicative_expr(): ExprN {
-		let left = this.parse_member_expr();
+		let left = this.parse_call_expr();
 
 		while (
 			this.at().value == "/" ||
 			this.at().value == "*"
 		) {
 			const op = this.eat().value;
-			const right = this.parse_member_expr();
+			const right = this.parse_call_expr();
 			left = {
 				type: NodeType.BinaryExpr,
 				left,
@@ -181,6 +181,32 @@ export default class Parser {
 		}
 
 		return left;
+	}
+
+	private parse_call_expr(): ExprN {
+		let expr = this.parse_member_expr();
+
+		// only the below node types can potentially have a callable function
+		if (
+			expr.type != NodeType.Function && 
+			expr.type != NodeType.Identifier &&
+			expr.type != NodeType.WithExpr &&
+			expr.type != NodeType.LetExpr &&
+			expr.type != NodeType.MemberExpr &&
+			expr.type != NodeType.CallExpr
+		) {
+			return expr;
+		}
+
+		while (this.until(TokenType.BinaryOp)) {
+			let expr2 = this.parse_member_expr();
+			expr = {
+				fn: expr,
+				arg: expr2,
+			} as CallExprN;
+		}
+
+		return expr;
 	}
 
 	private parse_member_expr(): ExprN {
