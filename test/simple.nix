@@ -23,3 +23,5 @@ with { x = 3; z = 4; }; z
 0 > 1 || 2 >= 1
 0 > 1 || 1 >= 1
 let s = { x = 1; }; in s ? x -> s.x
+"apple"
+"He said, \"I love to program!\""

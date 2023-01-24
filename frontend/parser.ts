@@ -14,6 +14,7 @@ import {
 	BinaryExprN,
 	ListN,
 	SetN,
+	StringN,
 	NumberN,
 	IdentifierN,
 } from "./ast.ts";
@@ -408,6 +409,10 @@ export default class Parser {
 					return id;
 				}
 			}
+
+			// String
+			case TokenType.String:
+				return { type: NodeType.String, value: this.eat().value } as StringN;
 
 			// List
 			case TokenType.OpenBracket:

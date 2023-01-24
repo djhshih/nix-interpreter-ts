@@ -1,7 +1,8 @@
 export enum TokenType {
 	Identifier = "id",
 	Number = "num",
-	Path = "path",
+	String = "str",
+	Path = "path",        // TODO
 	UnaryOp = "op1",      // - !
 	BinaryOp = "op2",     // ? ++ * / + - < > // >= <= == != && ||
 	Let = "let",
@@ -18,8 +19,6 @@ export enum TokenType {
 	Semicolon = ";",
 	Query = "?",
 	Ellipsis = "...",
-	DQuote = "\"",
-	SQuotes = "''",
 	OpenParen = "(",
 	CloseParen = ")",
 	OpenBracket = "[",
@@ -76,7 +75,7 @@ function is_number(s: string): boolean {
 export function tokenize(s: string): Token[] {
 	const tokens = new Array<Token>();
 	// FIXME inefficient
-	const ss = s.split("");
+	let ss = s.split("");
 
 	while (ss.length > 0) {
 
@@ -103,14 +102,36 @@ export function tokenize(s: string): Token[] {
 			}
 
 			if ( ss2 == "''" ) {
-				ss.shift(); ss.shift();
-				tokens.push( token(ss2, TokenType.SQuotes) );
+				// TODO
+				let str = "";
+				tokens.push( token(str, TokenType.String) );
 				continue;
 			}
 		}
 
-		if (ss[0] == "\"") {
-			tokens.push( token(ss.shift(), TokenType.DQuote) );
+		if (ss[0] == "\"" && ss.length > 1) {
+			if (ss.length > 1) {
+				let end = -1;
+				for (let i = 1; i < ss.length; i++) {
+					if (ss[i] == "\"" && ss[i-1] != "\\") {
+						end = i;
+						break;
+					}
+				}
+				// construct string, ignore first and last character
+				if (end < 0) {
+					throw "Unexpected EOF when searching for matching \"";
+				} else if (end > 1) {
+					let str = ss.slice(1, end).join("");
+					tokens.push( token(str, TokenType.String) );
+				} else {
+					tokens.push( token("", TokenType.String) );
+				}
+				// remove consumed characters, including matching quotes
+				ss = ss.slice(end + 1);
+			} else {
+				throw "Last character is an unmatched \"";
+			}
 			continue;
 		}
 

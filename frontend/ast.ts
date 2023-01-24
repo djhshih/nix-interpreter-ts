@@ -10,6 +10,7 @@ export enum NodeType {
 	BinaryExpr = "op2",
 	List = "list",
 	Set = "set",
+	String = "str",
 	Number = "num",
 	Identifier = "id",
 }
@@ -87,6 +88,11 @@ export interface ParamsN extends ExprN {
 	values: Record<string, ExprN>;
 	// whether to allow extra arguments
 	open: boolean;
+}
+
+export interface StringN extends ExprN {
+	type: NodeType.String;
+	value: string;
 }
 
 export interface NumberN extends ExprN {
