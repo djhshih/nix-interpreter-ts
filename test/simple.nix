@@ -12,3 +12,4 @@ let s = { x = 1; y = 2; }; in with s; x
 { x = 1; y = 2; }.x
 with { x = 3; z = 4; }; z
 { x, y }: x + y
+{ x ? 1 + 3, y}: x - y

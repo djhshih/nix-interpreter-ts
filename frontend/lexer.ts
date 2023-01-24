@@ -16,6 +16,7 @@ export enum TokenType {
 	Dot = ".",
 	Colon = ":",
 	Semicolon = ";",
+	Query = "?",
 	Quote1 = "'",
 	Quote2 = "\"",
 	OpenParen = "(",
@@ -158,6 +159,11 @@ export function tokenize(s: string): Token[] {
 		
 		if (ss[0] == ".") {
 			tokens.push( token(ss.shift(), TokenType.Dot) );
+			continue;
+		}
+
+		if (ss[0] == "?") {
+			tokens.push( token(ss.shift(), TokenType.Query) );
 			continue;
 		}
 
