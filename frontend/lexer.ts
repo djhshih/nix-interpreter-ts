@@ -16,6 +16,8 @@ export enum TokenType {
 	Dot = ".",
 	Colon = ":",
 	Semicolon = ";",
+	Quote1 = "'",
+	Quote2 = "\"",
 	OpenParen = "(",
 	CloseParen = ")",
 	OpenBracket = "[",

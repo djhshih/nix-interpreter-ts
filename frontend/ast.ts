@@ -6,6 +6,7 @@ export enum NodeType {
 	IfExpr = "if",
 	SelectExpr =".",
 	ApplyExpr = "call",
+	Params = "params",
 	BinaryExpr = "op2",
 	List = "list",
 	Set = "set",
@@ -76,6 +77,16 @@ export interface ListN extends ExprN {
 export interface SetN extends ExprN {
 	type: NodeType.Set;
 	elements: Record<string, ExprN>;	
+}
+
+export interface ParamsN extends ExprN {
+	type: NodeType.Params;
+	// whether each parameter is optional
+	optional: Record<string, boolean>;
+	// default values for optional parameters
+	defaults: Record<string, ExprN>;
+	// whether to allow extra arguments
+	open: boolean
 }
 
 export interface NumberN extends ExprN {

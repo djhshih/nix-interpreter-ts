@@ -10,6 +10,7 @@ import {
 	IfExprN,
 	SelectExprN,
 	ApplyExprN,
+	ParamsN,
 	BinaryExprN,
 	ListN,
 	SetN,
@@ -26,12 +27,24 @@ export default class Parser {
 		return this.tokens[0].type == TokenType.EOF;
 	}
 
-	private at(): Token {
-		return this.tokens[0];
+	private at(i = 0): Token {
+		return this.tokens[i];
 	}
 
 	private until(token_type: TokenType) {
 		return !this.eof() && this.at().type != token_type;
+	}
+
+	private find(token_type: TokenType, end = 0) {
+		if (end <= 0 || end > this.tokens.length) {
+			end = this.tokens.length;
+		}
+		for (let i = 0; i < end; i++) {
+			if (this.tokens[i].type == token_type) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	private eat(): Token {
@@ -285,12 +298,21 @@ export default class Parser {
 			case TokenType.OpenBracket:
 				return this.parse_list();
 
-			// TODO Support set pattern for function declaration
-			//      We need to distinguish between a set and a set pattern somehow
-
 			// Set
-			case TokenType.OpenBrace:
-				return this.parse_set();
+			case TokenType.OpenBrace: {
+				let i = this.find(TokenType.CloseBrace);
+				if (i > 0) {
+					// it is safe to peek at i+1 because the last token is EOF
+					if (this.at(i+1).type == TokenType.Colon) {
+						return this.parse_params_and_function();
+					} else {
+						return this.parse_set();
+					}
+				} else {
+					console.error("tokens: ", this.tokens);
+					throw "Unexpected EOF while looking for matching '}'";
+				}
+			}
 
 			// grouping expression
 			case TokenType.OpenParen:
@@ -317,6 +339,7 @@ export default class Parser {
 			return list;
 	}
 
+	// { a = 1; b; c = 2; }
 	private parse_set(): SetN {
 		this.eat();  // eat open brace
 		const set: SetN = { type: NodeType.Set, elements: {} };
@@ -326,6 +349,22 @@ export default class Parser {
 		}
 		this.expect(TokenType.CloseBrace, "Set is not closed");
 		return set;
+	}
+
+	// { a, b ? 0, c, ... }: expr
+	private parse_params_and_function(): ParamsN {
+		this.eat();  // eat open brace
+		const params: ParamsN = { type: NodeType.Params, optional: {}, defaults: {} };
+		while (!this.eof()) {
+			const arg = this.parse_identifier();	
+			params.optional[arg] = false;
+			if (this.at().type == TokenType.CloseBrace) {
+				break;
+			}
+			this.expect(TokenType.Comma, "Param set must be delimited by ','");
+		}
+		this.expect(TokenType.CloseBrace, "Param set is not closed");
+		return this.parse_function(params);
 	}
 
 	private parse_group(): ExprN {
