@@ -120,11 +120,18 @@ export default class Parser {
 		};
 	}
 
-	private parse_binding(): BindingN {
+	// inherit = true allows right-hand side to be inherited
+	private parse_binding(inherit = false): BindingN {
 		const identifier = this.parse_identifier();
-		this.expect(TokenType.Equal, "Binding must contain '='");
-		const value = this.parse_expr();
-		this.expect(TokenType.Semicolon, "Binding must end in ';'");
+		let value;
+		if (inherit && this.at().type == TokenType.Semicolon) {
+			value = identifier;
+			this.eat();
+		} else {
+			this.expect(TokenType.Equal, "Binding must contain '='");
+			value = this.parse_expr();
+			this.expect(TokenType.Semicolon, "Binding must end in ';'");
+		}
 		return {
 			type: NodeType.Binding,
 			identifier,
@@ -314,7 +321,7 @@ export default class Parser {
 		this.eat();  // eat open brace
 		const set: SetN = { type: NodeType.Set, elements: {} };
 		while (this.until(TokenType.CloseBrace)) {
-			const binding = this.parse_binding();
+			const binding = this.parse_binding(true);
 			set.elements[binding.identifier.name] = binding.value;
 		}
 		this.expect(TokenType.CloseBrace, "Set is not closed");
