@@ -18,8 +18,8 @@ export enum TokenType {
 	Semicolon = ";",
 	Query = "?",
 	Ellipsis = "...",
-	Quote1 = "'",
-	Quote2 = "\"",
+	DQuote = "\"",
+	SQuotes = "''",
 	OpenParen = "(",
 	CloseParen = ")",
 	OpenBracket = "[",
@@ -101,9 +101,19 @@ export function tokenize(s: string): Token[] {
 				tokens.push( token(ss2, TokenType.BinaryOp) );
 				continue;
 			}
+
+			if ( ss2 == "''" ) {
+				ss.shift(); ss.shift();
+				tokens.push( token(ss2, TokenType.SQuotes) );
+				continue;
+			}
 		}
 
-		// parse one-character tokens	
+		if (ss[0] == "\"") {
+			tokens.push( token(ss.shift(), TokenType.DQuote) );
+			continue;
+		}
+
 		if (ss[0] == "(") {
 			tokens.push( token(ss.shift(), TokenType.OpenParen) );
 			continue;
