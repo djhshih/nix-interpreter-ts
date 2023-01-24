@@ -2,9 +2,8 @@ export enum TokenType {
 	Identifier = "id",
 	Number = "num",
 	Path = "path",
-	UnaryOp = "op1",      // !
-	BinaryOp = "op2",     // ? * / + - < >
-	              // ++ // >= <= == != && ||
+	UnaryOp = "op1",      // - !
+	BinaryOp = "op2",     // ? ++ * / + - < > // >= <= == != && ||
 	Let = "let",
 	In = "in",
 	With = "with",
