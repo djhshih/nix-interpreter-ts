@@ -15,9 +15,9 @@ typescript 4.9
 
 ## Progress
 
-Lexer: almost (requires string optimization)
-Parser: almost
-Interpreter: pending
+Lexer: almost (requires string optimization)  
+Parser: almost  
+Interpreter: pending  
 
 ## Usage
 
