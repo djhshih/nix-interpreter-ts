@@ -109,7 +109,7 @@ export function tokenize(s: string): Token[] {
 			}
 		}
 
-		if (ss[0] == "\"" && ss.length > 1) {
+		if (ss[0] == "\"") {
 			if (ss.length > 1) {
 				let end = -1;
 				for (let i = 1; i < ss.length; i++) {
