@@ -7,6 +7,7 @@ import {
 	FunctionN,
 	LetExprN,
 	WithExprN,
+	IfExprN,
 	SelectExprN,
 	ApplyExprN,
 	BinaryExprN,
@@ -62,6 +63,8 @@ export default class Parser {
 				return this.parse_let_expr();
 			case TokenType.With:
 				return this.parse_with_expr();
+			case TokenType.If:
+				return this.parse_if_expr();
 			default:
 				return this.parse_simple_expr();
 		}
@@ -103,10 +106,24 @@ export default class Parser {
 		return expr;
 	}
 
+	private parse_if_expr(): IfExprN {
+		this.eat();  // eat if
+		let condition = this.parse_expr();
+		this.expect(TokenType.Then, "If expression must have an 'then'")
+		let left = this.parse_expr();
+		this.expect(TokenType.Else, "If expression must have an 'else'")
+		let right = this.parse_expr();
+		return {
+			type: NodeType.IfExpr,
+			left,
+			right,
+		};
+	}
+
 	private parse_binding(): BindingN {
 		const identifier = this.parse_identifier();
 		this.expect(TokenType.Equal, "Binding must contain '='");
-		const value = this.parse_simple_expr();
+		const value = this.parse_expr();
 		this.expect(TokenType.Semicolon, "Binding must end in ';'");
 		return {
 			type: NodeType.Binding,
@@ -198,7 +215,15 @@ export default class Parser {
 			return expr;
 		}
 
-		while (this.until(TokenType.BinaryOp)) {
+		// only do function application if next token is a permissible operand
+		while (
+			this.at().type == TokenType.Identifier ||
+			this.at().type == TokenType.Number ||
+			this.at().type == TokenType.Path ||
+			this.at().type == TokenType.OpenParen ||     // expr
+			this.at().type == TokenType.OpenBracket ||   // list
+			this.at().type == TokenType.OpenBrace        // set
+		) {
 			let expr2 = this.parse_select_expr();
 			expr = {
 				fn: expr,

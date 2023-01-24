@@ -3,6 +3,7 @@ export enum NodeType {
 	Function = "fn",
 	LetExpr = "let",
 	WithExpr = "with",
+	IfExpr = "if",
 	SelectExpr =".",
 	ApplyExpr = "call",
 	BinaryExpr = "op2",
@@ -46,6 +47,13 @@ export interface WithExprN extends ExprN {
 	type: NodeType.WithExpr;
 	env: ExprN;
 	body: ExprN;
+}
+
+export interface IfExprN extends ExprN {
+	type: NodeType.IfExpr;
+	condition: ExprN;
+	left: ExprN;
+	right: ExprN;
 }
 
 export interface SelectExprN extends ExprN {

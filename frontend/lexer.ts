@@ -7,6 +7,9 @@ export enum TokenType {
 	Let = "let",
 	In = "in",
 	With = "with",
+	If = "if",
+	Then = "then",
+	Else = "else",
 	Rec = "rec",
 	Equal = "=",
 	Comma = ",",
@@ -26,6 +29,9 @@ const keywords: Record<string, TokenType> = {
 	let: TokenType.Let,
 	in: TokenType.In,
 	with: TokenType.With,
+	if: TokenType.If,
+	then: TokenType.Then,
+	else: TokenType.Else,
 	rec: TokenType.Rec,
 }
 
