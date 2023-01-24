@@ -49,15 +49,19 @@ function is_whitespace(s: string): boolean {
 }
 
 function is_identifier(s: string): boolean {
-	return is_alpha(s) || is_number(s) || s == "_";
+	return is_alpha(s) || is_digit(s) || s == "_";
 }
 
-function is_number(s: string): boolean {
+function is_digit(s: string): boolean {
 	const c = s.charCodeAt(0);
 	const d0 = "0".charCodeAt(0);
 	const d9 = "9".charCodeAt(0);
-	const dot = ".".charCodeAt(0);
-	return (c >= d0 && c <= d9) || c == dot;
+	return c >= d0 && c <= d9;
+}
+
+// FIXME this would allow multiple '.'
+function is_number(s: string): boolean {
+	return is_digit(s) || s == ".";
 }
 
 export function tokenize(s: string): Token[] {
