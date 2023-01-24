@@ -94,7 +94,8 @@ export function tokenize(s: string): Token[] {
 				ss2 == "==" ||
 				ss2 == "!=" ||
 				ss2 == "&&" ||
-				ss2 == "||"
+				ss2 == "||" ||
+				ss2 == "->"
 			) {
 				ss.shift(); ss.shift();
 				tokens.push( token(ss2, TokenType.BinaryOp) );

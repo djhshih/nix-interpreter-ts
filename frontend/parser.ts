@@ -156,26 +156,93 @@ export default class Parser {
 	// from the outer-most parser (lowest precedence)
 	// to the inner-most parser (highest precedence):
 	// simple
-	// comparative
-	// additive
-	// multiplicative
-	// apply
-	// select
+	// 12 logical && || ->
+	// 11 equality ==, inequality !=
+	// 10 comparative < <= > >=
+	// 9 update //
+	// 8 logical negation
+	// 7 addition +, subtraction -
+	// 6 multiplication *, division /
+	// 5 list concatentation ++
+	// 4 has attribute ?
+	// 3 arithmetic negation -
+	// 2 apply
+	// 1 select .
+	
+	// TODO unary - !
 
 	private parse_simple_expr(): ExprN {
-		return this.parse_comparative_expr();
+		return this.parse_logical_expr();
+	}
+
+	private parse_logical_expr(): ExprN {
+		let left = this.parse_equality_expr();
+
+		while (
+			this.at().value == "&&" ||
+			this.at().value == "->" ||
+			this.at().value == "||"
+		) {
+			const op = this.eat().value;
+			const right = this.parse_equality_expr();
+			left = {
+				type: NodeType.BinaryExpr,
+				left,
+				right,
+				op,
+			} as BinaryExprN;
+		}
+
+		return left;
+	}
+
+	private parse_equality_expr(): ExprN {
+		let left = this.parse_comparative_expr();
+
+		while (
+			this.at().value == "==" ||
+			this.at().value == "!="
+		) {
+			const op = this.eat().value;
+			const right = this.parse_comparative_expr();
+			left = {
+				type: NodeType.BinaryExpr,
+				left,
+				right,
+				op,
+			} as BinaryExprN;
+		}
+
+		return left;
 	}
 
 	private parse_comparative_expr(): ExprN {
-		let left = this.parse_additive_expr();
+		let left = this.parse_update_expr();
 
 		while (
 			this.at().value == ">" ||
 			this.at().value == "<" ||
 			this.at().value == ">=" ||
-			this.at().value == "<=" ||
-			this.at().value == "==" ||
-			this.at().value == "!="
+			this.at().value == "<="
+		) {
+			const op = this.eat().value;
+			const right = this.parse_update_expr();
+			left = {
+				type: NodeType.BinaryExpr,
+				left,
+				right,
+				op,
+			} as BinaryExprN;
+		}
+
+		return left;
+	}
+
+	private parse_update_expr(): ExprN {
+		let left = this.parse_additive_expr();
+
+		while (
+			this.at().value == "//"
 		) {
 			const op = this.eat().value;
 			const right = this.parse_additive_expr();
@@ -211,11 +278,49 @@ export default class Parser {
 	}
 
 	private parse_multiplicative_expr(): ExprN {
-		let left = this.parse_apply_expr();
+		let left = this.parse_concat_expr();
 
 		while (
 			this.at().value == "/" ||
 			this.at().value == "*"
+		) {
+			const op = this.eat().value;
+			const right = this.parse_concat_expr();
+			left = {
+				type: NodeType.BinaryExpr,
+				left,
+				right,
+				op,
+			} as BinaryExprN;
+		}
+
+		return left;
+	}
+
+	private parse_concat_expr(): ExprN {
+		let left = this.parse_has_expr();
+
+		while (
+			this.at().value == "++"
+		) {
+			const op = this.eat().value;
+			const right = this.parse_has_expr();
+			left = {
+				type: NodeType.BinaryExpr,
+				left,
+				right,
+				op,
+			} as BinaryExprN;
+		}
+
+		return left;
+	}
+
+	private parse_has_expr(): ExprN {
+		let left = this.parse_apply_expr();
+
+		while (
+			this.at().value == "?"
 		) {
 			const op = this.eat().value;
 			const right = this.parse_apply_expr();
@@ -224,7 +329,7 @@ export default class Parser {
 				left,
 				right,
 				op,
-			} as BinaryExprN;	
+			} as BinaryExprN;
 		}
 
 		return left;
