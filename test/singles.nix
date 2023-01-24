@@ -25,3 +25,4 @@ with { x = 3; z = 4; }; z
 let s = { x = 1; }; in s ? x -> s.x
 "apple"
 "He said, \"I love to program!\""
+"apple" + " orange"
