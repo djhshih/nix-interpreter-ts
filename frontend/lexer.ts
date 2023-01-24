@@ -48,7 +48,7 @@ function is_whitespace(s: string): boolean {
 }
 
 function is_identifier(s: string): boolean {
-	return is_alpha(s) || is_digit(s) || s == "_";
+	return is_alpha(s) || is_digit(s) || s == "_" || s == "-";
 }
 
 function is_digit(s: string): boolean {
