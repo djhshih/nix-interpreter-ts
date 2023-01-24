@@ -3,8 +3,8 @@ export enum NodeType {
 	Function = "fn",
 	LetExpr = "let",
 	WithExpr = "with",
-	MemberExpr =".",
-	CallExpr = "call",
+	SelectExpr =".",
+	ApplyExpr = "call",
 	BinaryExpr = "op2",
 	List = "list",
 	Set = "set",
@@ -48,14 +48,14 @@ export interface WithExprN extends ExprN {
 	body: ExprN;
 }
 
-export interface MemberExprN extends ExprN {
-	type: NodeType.MemberExpr;
+export interface SelectExprN extends ExprN {
+	type: NodeType.SelectExpr;
 	set: ExprN;
 	member: IdentifierN;
 }
 
-export interface CallExprN extends ExprN {
-	type: NodeType.CallExpr;
+export interface ApplyExprN extends ExprN {
+	type: NodeType.ApplyExpr;
 	fn: ExprN;
 	arg: ExprN;
 }

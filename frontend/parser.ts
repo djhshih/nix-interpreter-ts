@@ -7,8 +7,8 @@ import {
 	FunctionN,
 	LetExprN,
 	WithExprN,
-	MemberExprN,
-	CallExprN,
+	SelectExprN,
+	ApplyExprN,
 	BinaryExprN,
 	ListN,
 	SetN,
@@ -164,14 +164,14 @@ export default class Parser {
 	}
 
 	private parse_multiplicative_expr(): ExprN {
-		let left = this.parse_call_expr();
+		let left = this.parse_apply_expr();
 
 		while (
 			this.at().value == "/" ||
 			this.at().value == "*"
 		) {
 			const op = this.eat().value;
-			const right = this.parse_call_expr();
+			const right = this.parse_apply_expr();
 			left = {
 				type: NodeType.BinaryExpr,
 				left,
@@ -183,8 +183,8 @@ export default class Parser {
 		return left;
 	}
 
-	private parse_call_expr(): ExprN {
-		let expr = this.parse_member_expr();
+	private parse_apply_expr(): ExprN {
+		let expr = this.parse_select_expr();
 
 		// only the below node types can potentially have a callable function
 		if (
@@ -192,24 +192,24 @@ export default class Parser {
 			expr.type != NodeType.Identifier &&
 			expr.type != NodeType.WithExpr &&
 			expr.type != NodeType.LetExpr &&
-			expr.type != NodeType.MemberExpr &&
-			expr.type != NodeType.CallExpr
+			expr.type != NodeType.SelectExpr &&
+			expr.type != NodeType.ApplyExpr
 		) {
 			return expr;
 		}
 
 		while (this.until(TokenType.BinaryOp)) {
-			let expr2 = this.parse_member_expr();
+			let expr2 = this.parse_select_expr();
 			expr = {
 				fn: expr,
 				arg: expr2,
-			} as CallExprN;
+			} as ApplyExprN;
 		}
 
 		return expr;
 	}
 
-	private parse_member_expr(): ExprN {
+	private parse_select_expr(): ExprN {
 		let obj = this.parse_term();
 
 		// only set or identifier can use . notation
@@ -222,10 +222,10 @@ export default class Parser {
 			this.eat();  // advance past dot operator
 			let member = this.parse_identifier();
 			obj = {
-				type: NodeType.MemberExpr,
+				type: NodeType.SelectExpr,
 				set: obj,
 				member,
-			} as MemberExprN;
+			} as SelectExprN;
 		}
 
 		return obj
