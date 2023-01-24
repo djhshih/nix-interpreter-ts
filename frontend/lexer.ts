@@ -181,10 +181,9 @@ export function tokenize(s: string): Token[] {
 				name += ss.shift();	
 			}
 			// check for reserved keywords
-			const keyword = keywords[name];
-			if (typeof keyword == "number") {
+			if (name in keywords) {
 				// identifier is a recognized keyword
-				tokens.push( token(name, keyword) );
+				tokens.push( token(name, keywords[name]) );
 			} else {
 				tokens.push( token(name, TokenType.Identifier) );
 			}

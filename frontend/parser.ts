@@ -90,6 +90,7 @@ export default class Parser {
 			default:
 				throw "With expression must begin with an identifier or set";
 		}
+		this.expect(TokenType.Semicolon, "With expression must be delimited by ';'");
 		let expr: WithExprN = {
 			type: NodeType.WithExpr,
 			env: env,
@@ -234,6 +235,7 @@ export default class Parser {
 				return this.parse_group();
 
 			default:
+				console.log(this.tokens);
 				throw "Unexpected token found: " + this.at().value;
 		}
 	}
