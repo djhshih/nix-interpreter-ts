@@ -1,26 +1,26 @@
 export enum TokenType {
-	Identifier,
-	Number,
-	Path,
-	UnaryOp,      // !
-	BinaryOp,     // ? * / + - < >
+	Identifier = "id",
+	Number = "num",
+	Path = "path",
+	UnaryOp = "op1",      // !
+	BinaryOp = "op2",     // ? * / + - < >
 	              // ++ // >= <= == != && ||
-	Let,
-	In,
-	With,
-	Rec,
-	Equal,
-	Comma,
-	Dot,
-	Colon,
-	Semicolon,
-	OpenParen,    // (
-	CloseParen,   // )
-	OpenBracket,  // [
-	CloseBracket, // ]
-	OpenBrace,    // {
-	CloseBrace,   // }
-	EOF
+	Let = "let",
+	In = "in",
+	With = "with",
+	Rec = "rec",
+	Equal = "=",
+	Comma = ",",
+	Dot = ".",
+	Colon = ":",
+	Semicolon = ";",
+	OpenParen = "(",
+	CloseParen = ")",
+	OpenBracket = "[",
+	CloseBracket = "]",
+	OpenBrace = "{",
+	CloseBrace = "}",
+	EOF = "eof"
 }
 
 const keywords: Record<string, TokenType> = {

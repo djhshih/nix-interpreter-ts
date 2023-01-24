@@ -1,15 +1,15 @@
 export enum NodeType {
-	Binding,
-	Function,
-	LetExpr,
-	WithExpr,
-	MemberExpr,
-	CallExpr,
-	BinaryExpr,
-	List,
-	Set,
-	Number,
-	Identifier
+	Binding = "=",
+	Function = "fn",
+	LetExpr = "let",
+	WithExpr = "with",
+	MemberExpr =".",
+	CallExpr = "call",
+	BinaryExpr = "op",
+	List = "list",
+	Set = "set",
+	Number = "num",
+	Identifier = "id",
 }
 
 export interface ExprN {

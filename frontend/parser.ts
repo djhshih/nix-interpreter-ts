@@ -40,7 +40,7 @@ export default class Parser {
 	private expect(type: TokenType, err: any): Token {
 		const token = this.tokens.shift();
 		if (!token || token.type != type) {
-			throw `Parser error: ${err}; Got: ${token}; Expecting: ${type}`;
+			throw `Parsing failed: ${err}. Got: ${token.value}, Expecting: ${type}`;
 		}
 		return token;
 	}	
@@ -234,7 +234,7 @@ export default class Parser {
 				return this.parse_group();
 
 			default:
-				throw "Unexpected token found: " + this.at();
+				throw "Unexpected token found: " + this.at().value;
 		}
 	}
 
