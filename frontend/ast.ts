@@ -5,7 +5,7 @@ export enum NodeType {
 	WithExpr = "with",
 	MemberExpr =".",
 	CallExpr = "call",
-	BinaryExpr = "op",
+	BinaryExpr = "op2",
 	List = "list",
 	Set = "set",
 	Number = "num",
