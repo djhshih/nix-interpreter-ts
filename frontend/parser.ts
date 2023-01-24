@@ -256,7 +256,7 @@ export default class Parser {
 	private parse_set(): SetN {
 		this.eat();  // eat open brace
 		const set: SetN = { type: NodeType.Set, elements: {} };
-		while (this.until(TokenType.CloseBracket)) {
+		while (this.until(TokenType.CloseBrace)) {
 			const binding = this.parse_binding();
 			set.elements[binding.identifier.name] = binding.value;
 		}
