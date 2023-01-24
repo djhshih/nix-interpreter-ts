@@ -152,6 +152,16 @@ export default class Parser {
 		} as BindingN;
 	}
 
+	// order of precedence for operators
+	// from the outer-most parser (lowest precedence)
+	// to the inner-most parser (highest precedence):
+	// simple
+	// comparative
+	// additive
+	// multiplicative
+	// apply
+	// select
+
 	private parse_simple_expr(): ExprN {
 		return this.parse_comparative_expr();
 	}
