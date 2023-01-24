@@ -86,7 +86,7 @@ export interface ParamsN extends ExprN {
 	// default values for optional parameters
 	values: Record<string, ExprN>;
 	// whether to allow extra arguments
-	open: boolean
+	open: boolean;
 }
 
 export interface NumberN extends ExprN {

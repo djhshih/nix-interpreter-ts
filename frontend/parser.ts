@@ -354,15 +354,22 @@ export default class Parser {
 	// { a, b ? 0, c, ... }: expr
 	private parse_params_and_function(): ParamsN {
 		this.eat();  // eat open brace
-		const params: ParamsN = { type: NodeType.Params, optional: {}, values: {} };
+		const params: ParamsN = {
+			type: NodeType.Params, optional: {}, values: {}, open: false
+		};
 		while (!this.eof()) {
-			const name = this.parse_identifier().name;
-			if (this.at().type == TokenType.Query) {
-				this.eat();  // eat the query
-				params.optional[name] = true;
-				params.values[name] = this.parse_expr();
+			if (this.at().type == TokenType.Ellipsis) {
+				this.eat();  // eat the ellipsis
+				params.open = true;
 			} else {
-				params.optional[name] = false;
+				const name = this.parse_identifier().name;
+				if (this.at().type == TokenType.Query) {
+					this.eat();  // eat the query
+					params.optional[name] = true;
+					params.values[name] = this.parse_expr();
+				} else {
+					params.optional[name] = false;
+				}
 			}
 			if (this.at().type == TokenType.CloseBrace) {
 				break;

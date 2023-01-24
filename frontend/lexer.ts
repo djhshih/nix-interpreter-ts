@@ -17,6 +17,7 @@ export enum TokenType {
 	Colon = ":",
 	Semicolon = ";",
 	Query = "?",
+	Ellipsis = "...",
 	Quote1 = "'",
 	Quote2 = "\"",
 	OpenParen = "(",
@@ -155,6 +156,15 @@ export function tokenize(s: string): Token[] {
 		if (ss[0] == ",") {
 			tokens.push( token(ss.shift(), TokenType.Comma) );
 			continue;
+		}
+
+		if (ss.length >= 3) {
+			const ss3 = ss[0] + ss[1] + ss[2];
+			if (ss3 == "...") {
+				ss.shift(); ss.shift(); ss.shift();
+				tokens.push( token(ss3, TokenType.Ellipsis) );
+				continue;
+			}
 		}
 		
 		if (ss[0] == ".") {
