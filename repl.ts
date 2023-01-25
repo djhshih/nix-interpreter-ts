@@ -1,8 +1,12 @@
 import Parser from "./frontend/parser.ts";
+import Interpreter from "./runtime/interpreter.ts";
 
 repl();
 
 function repl() {
+	const parser = new Parser();
+	const interp = new Interpreter();
+
 	console.log("nix");
 
 	while (true) {
@@ -11,9 +15,11 @@ function repl() {
 			Deno.exit(1);
 		}
 
-		const parser = new Parser();
 		// produce ast
 		const ast = parser.parse(input);
-		console.log(ast);
+		console.log("AST: ",  ast);
+
+		const value = interp.evaluate(ast);
+		console.log("value: ", value);
 	}
 }

@@ -12,6 +12,7 @@ export enum NodeType {
 	Set = "set",
 	String = "str",
 	Number = "num",
+	Boolean = "bool",
 	Identifier = "id",
 }
 

@@ -54,7 +54,11 @@ export default class Parser {
 
 	private expect(type: TokenType, err: any): Token {
 		const token = this.tokens.shift();
-		if (!token || token.type != type) {
+		if (!token) {
+			console.error("tokens: ", this.tokens);
+			throw `Parsing failed: ${err}. Undefined token`;
+		}
+		if (token.type != type) {
 			console.error("tokens: ", this.tokens);
 			throw `Parsing failed: ${err}. Got '${token.value}' but expecting '${type}'`;
 		}
@@ -62,7 +66,12 @@ export default class Parser {
 	}	
 
 	// parse source code to produce an abstract syntax tree
-	public parse(s: string): ExprN[] {
+	public parse(s: string): ExprN {
+		this.tokens = tokenize(s);
+		return this.parse_expr();
+	}
+
+	public parse_many(s: string): ExprN[] {
 		this.tokens = tokenize(s);
 		let exprs: ExprN[] = [];	
 		while (!this.eof()) {
@@ -129,6 +138,7 @@ export default class Parser {
 		let right = this.parse_expr();
 		return {
 			type: NodeType.IfExpr,
+			condition,
 			left,
 			right,
 		};
@@ -472,7 +482,7 @@ export default class Parser {
 	}
 
 	// { a, b ? 0, c, ... }: expr
-	private parse_params_and_function(): ParamsN {
+	private parse_params_and_function(): FunctionN {
 		this.eat();  // eat open brace
 		const params: ParamsN = {
 			type: NodeType.Params, optional: {}, values: {}, open: false
