@@ -218,57 +218,49 @@ function _length(x: Value, env: Environment): Value {
 // TODO nix supports partial application of builtin functions
 // e.g. let addOne = x: x + 1; in map addOne
 
-// all pred list
+// TODO all pred list
 function _all(x: Value, env: Environment): Value {
-	// TODO
 	return _boolean();
 }
 
-// any pred list
+// TODO any pred list
 function _any(x: Value, env: Environment): Value {
-	// TODO
 	return _boolean();
 }
 
-// elem x xs
+// TODO elem x xs
 function _elem(x: Value, env: Environment): Value {
-	// TODO
 	return _null();
 }
 
-// elemAt xs n
+// TODO elemAt xs n
 function _elemAt(x: Value, env: Environment): Value {
-	// TODO
 	return _null();
 }
 
-// groupBy f list
+// TODO groupBy f list
 function _groupBy(x: Value, env: Environment): Value {
-	// TODO
 	return _null();
 }
 
-// filter f list
+// TODO filter f list
 function _filter(x: Value, env: Environment): Value {
-	// TODO
 	return _null();
 }
 
-// map f list
+// TODO map f list
 function _map(x: Value, env: Environment): Value {
-	// TODO
 	return _null();
 }
 
-// concat lists
+// TODO concat lists
 function _concat(x: Value, env: Environment): Value {
 	// TODO
 	return _list();
 }
 
-// concatMap f list
+// TODO concatMap f list
 function _concatMap(x: Value, env: Environment): Value {
-	// TODO
 	return _list();
 }
 
@@ -280,42 +272,40 @@ function _attrNames(x: Value, env: Environment): Value {
 	return _list( names.map((s) => _string(s)) );
 }
 
-// attrValues set
+// TODO attrValues set
 function _attrValues(x: Value, env: Environment): Value {
 	expect_type(x, ValueType.Set, "attrValues");
 	return _list( (<any>Object).values((x as SetV).value) );
 }
 
-// getAttrs s set
+// TODO getAttrs s set
 function _getAttrs(x: Value, env: Environment): Value {
 	// TODO
 	return _null();
 }
 
-// hasAttrs s set
+// TODO hasAttrs s set
 function _hasAttrs(x: Value, env: Environment): Value {
 	// TODO
 	return _null();
 }
 
-// intersectAttrs e1 e2
+// TODO intersectAttrs e1 e2
 function _intersectAttrs(x: Value, env: Environment): Value {
 	// TODO
 	return _null();
 }
 
-// mapAttrs f set
+// TODO mapAttrs f set
 function _mapAttrs(x: Value, env: Environment): Value {
-	// TODO
 	return _null();
 }
 
-// catAttrs attr list
+// TODO catAttrs attr list
 // Collect each attribute named attr from a list of attribute sets. Attrsets that don't contain the named attribute are ignored. For example,
 // builtins.catAttrs "a" [{a = 1;} {b = 0;} {a = 2;}]
 // evaluates to [1 2].
 function _catAttrs(x: Value, env: Environment): Value {
-	// TODO
 	return _list();
 }
 

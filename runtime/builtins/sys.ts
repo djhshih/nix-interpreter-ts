@@ -6,15 +6,13 @@ import {
 	_boolean, _string,
 } from "../values.ts";
 
-// baseNameOf s
+// TODO baseNameOf s
 export function _baseNameOf(x: Value, env: Environment): Value {
-	// TODO
 	return _string();
 }
 
-// dirOf s
+// TODO dirOf s
 export function _dirOf(x: Value, env: Environment): Value {
-	// TODO
 	return _string();
 }
 
