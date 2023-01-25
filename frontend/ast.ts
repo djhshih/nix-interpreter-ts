@@ -10,6 +10,7 @@ export enum NodeType {
 	BinaryExpr = "op2",
 	List = "list",
 	Set = "set",
+	Path = "path",
 	String = "str",
 	Number = "num",
 	Identifier = "id",
@@ -88,6 +89,11 @@ export interface ParamsN extends ExprN {
 	values: Record<string, ExprN>;
 	// whether to allow extra arguments
 	open: boolean;
+}
+
+export interface PathN extends ExprN {
+	type: NodeType.Path;
+	value: string;
 }
 
 export interface StringN extends ExprN {

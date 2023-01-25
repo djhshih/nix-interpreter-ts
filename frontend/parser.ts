@@ -14,6 +14,7 @@ import {
 	BinaryExprN,
 	ListN,
 	SetN,
+	PathN,
 	StringN,
 	NumberN,
 	IdentifierN,
@@ -428,9 +429,11 @@ export default class Parser {
 				}
 			}
 
-			// String
 			case TokenType.String:
 				return { type: NodeType.String, value: this.eat().value } as StringN;
+
+			case TokenType.Path:
+				return { type: NodeType.Path, value: this.eat().value } as PathN;
 
 			// List
 			case TokenType.OpenBracket:
