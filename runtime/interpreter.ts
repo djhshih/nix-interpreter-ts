@@ -35,9 +35,13 @@ export default class Interpreter {
 		switch (expr.type) {
 			case NodeType.Identifier:
 				return eval_identifier(expr as IdentifierN, this.env);
-			case NodeType.Number:
-				// TODO recognize integer; may need to change lexer
-				return _float((expr as NumberN).value);
+			case NodeType.Number: {
+				if ((expr as NumberN).integer) {
+					return _integer((expr as NumberN).value);
+				} else {
+					return _float((expr as NumberN).value);
+				}
+			}
 			case NodeType.String:
 				return _string((expr as StringN).value);
 			default:

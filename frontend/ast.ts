@@ -98,6 +98,7 @@ export interface StringN extends ExprN {
 export interface NumberN extends ExprN {
 	type: NodeType.Number;
 	value: number;
+	integer: boolean;
 }
 
 export interface IdentifierN extends ExprN {

@@ -405,10 +405,18 @@ export default class Parser {
 	private parse_term(): ExprN {
 		switch (this.at().type) {
 
-			case TokenType.Number:
+			case TokenType.Number: {
+				const value = this.eat().value;
+				let integer;
+				if (value.indexOf(".") > 0) {
+					integer = false;
+				} else {
+					integer = true;
+				}
 				return {
-					type: NodeType.Number, value: parseFloat(this.eat().value)
+					type: NodeType.Number, value: parseFloat(value), integer
 				} as NumberN;
+			}
 
 			case TokenType.Identifier: {
 				const id = this.parse_identifier();
