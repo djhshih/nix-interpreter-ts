@@ -20,7 +20,7 @@ import {
 import {
 	ValueType, Value,
 	FloatV, IntegerV, BooleanV, SetV,
-	_null, _float, _integer, _boolean, _string
+	_null, _float, _integer, _boolean, _string, _set,
 } from "./values.ts";
 
 import Environment from "./environment.ts";
@@ -52,6 +52,14 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			return _string((expr as StringN).value);
 		case NodeType.BinaryExpr:
 			return eval_binary_expr((expr as BinaryExprN), env);
+		case NodeType.Set: {
+			let record = (expr as SetN).elements;
+			let set = _set();
+			for (const name in record) {
+				set.value[name] = evaluate(record[name], env);
+			}
+			return set;
+		}
 		default:
 			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
 	}
@@ -59,6 +67,11 @@ function evaluate(expr: ExprN, env: Environment): Value {
 
 function eval_identifier(id: IdentifierN, env: Environment): Value {
 	return env.get(id.name);
+}
+
+function eval_binding(binding: BindingN, env: Environment): Environment {
+	env.set(binding.identifier.name, evaluate(binding.value, env));
+	return env;
 }
 
 function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
@@ -78,10 +91,10 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 						op, (left as BooleanV).value, (right as BooleanV).value
 					));
 				} else {
-					throw `Right operand must be a boolean in ${left.type} ${op} ${right.type}`;
+					throw `Right operand must be a boolean in ${left.type} ${op} ${op2.right.type}`;
 				}
 			} else {
-				throw `Left operand must be a boolean in ${left.type} ${op} ${right.type}`;
+				throw `Left operand must be a boolean in ${left.type} ${op} ${op2.right.type}`;
 			}
 		}
 	}
@@ -149,14 +162,14 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	if (op == "?") {
 		if (left.type == ValueType.Set) {
 			let key;
-			if (op2.right == NodeType.Identifier) {
+			if (op2.right.type == NodeType.Identifier) {
 				key = (op2.right as IdentifierN).name;
-			} else if (op2.right == ValueType.String) {
+			} else if (op2.right.type == NodeType.String) {
 				key = (op2.right as StringN).value;
 			} else {
 				throw `Right operand must be an identifier in ${left.type} ${op} ${op2.right.type}`;
 			}
-			return key in (left as SetV).value;
+			return _boolean(key in (left as SetV).value);
 		} else {
 			throw `Left operand must be a set in ${left.type} ${op} ${op2.right.type}`;
 		}

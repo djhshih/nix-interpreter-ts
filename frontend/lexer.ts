@@ -74,8 +74,10 @@ function is_number(s: string): boolean {
 
 export function tokenize(s: string): Token[] {
 	const tokens = new Array<Token>();
-	// FIXME inefficient
+	// FIXME inefficient split
 	let ss = s.split("");
+
+	// FIXME avoid use of shift, which has O(n) complexity
 
 	while (ss.length > 0) {
 
