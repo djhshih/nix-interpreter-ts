@@ -369,6 +369,7 @@ export default class Parser {
 			this.at().type == TokenType.Path ||
 			this.at().type == TokenType.OpenParen ||     // expr
 			this.at().type == TokenType.OpenBracket ||   // list
+			this.at().type == TokenType.Rec ||           // set
 			this.at().type == TokenType.OpenBrace        // set
 		) {
 			let expr2 = this.parse_select_expr();
@@ -376,6 +377,12 @@ export default class Parser {
 				fn: expr,
 				arg: expr2,
 			} as ApplyExprN;
+		}
+
+		if (expr.type != NodeType.ApplyExpr) {
+		 	if (!this.eof() && !this.at().type == TokenType.Semicolon) {
+				throw `Parsing failed: expecting ';' or eof but got ${this.at().type}`
+			}
 		}
 
 		return expr;
@@ -440,6 +447,7 @@ export default class Parser {
 				return this.parse_list();
 
 			// Set
+			case TokenType.Rec:
 			case TokenType.OpenBrace: {
 				let i = this.find(TokenType.CloseBrace);
 				if (i > 0) {
@@ -482,8 +490,15 @@ export default class Parser {
 
 	// { a = 1; b; c = 2; }
 	private parse_set(): SetN {
-		this.eat();  // eat open brace
-		const set: SetN = { type: NodeType.Set, elements: {} };
+		let rec: boolean;
+		if (this.at().type == TokenType.Rec) {
+			this.eat();  // eat rec keyword
+			rec = true;
+		} else {
+			rec = false;
+		}
+		this.expect(TokenType.OpenBrace, "Set must begin with open brace");  // eat open brace
+		const set: SetN = { type: NodeType.Set, elements: {}, rec };
 		while (this.until(TokenType.CloseBrace)) {
 			const binding = this.parse_binding(true);
 			set.elements[binding.identifier.name] = binding.value;
