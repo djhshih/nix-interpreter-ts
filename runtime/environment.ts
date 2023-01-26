@@ -4,6 +4,21 @@ import {
 	_null, _boolean, _integer, _list, _string, _primfn
 } from "./values.ts";
 
+import {
+	_abort, _throw, _import,
+	_isNull, _isBool, _isInt, _isFloat, _isString, _isPath, _isList, _isAttrs, _isFunction,
+	_ceil, _floor,
+} from "./builtins/core.ts";
+
+import {
+	_head, _tail, _length, _all, _any, _elem, _elemAt,
+	_groupBy, _filter, _map, _concat, _concatMap,
+} from "./builtins/list.ts";
+
+import {
+	_attrNames, _attrValues,
+} from "./builtins/set.ts";
+
 export default class Environment {
 	private parent?: Environment;
 	private children: Environment[];
@@ -103,209 +118,5 @@ function init_global_env(env: Environment) {
 	env.set("attrValues", _primfn(_attrValues));
 
 	return env;
-}
-
-function expect_type(x: Value, t: ValueType, context: string) {
-	if (x.type != t) {
-		throw `${context} expects a ${t} but got ${x.type}`;
-	}
-}
-
-function show(x: Value) {
-	if (x.type == ValueType.String) {
-		return (x as StringV).value;
-	} else {
-		return x.toString();
-	}
-}
-
-function _abort(x: Value, env: Environment): Value {
-	throw `abort: ${show(x)}`;
-}
-
-function _throw(x: Value, env: Environment): Value {
-	throw `throw: ${show(x)}`;
-}
-
-function _import(x: Value, env: Environment): Value {
-	if (x.type != ValueType.Path && x.type != ValueType.String) {
-		throw `import expects a path but got ${x.type}`;
-	}
-
-	// TODO read file at path x and parse into expresssion
-	// TODO import expression into env
-	throw `import is not implemented yet`;
-
-	return _null();
-}
-
-
-function _isNull(x: Value, env: Environment): Value {
-	return _boolean(x.type == ValueType.Null);
-}
-
-function _isBool(x: Value, env: Environment): Value {
-	return _boolean(x.type == ValueType.Boolean);
-}
-
-function _isInt(x: Value, env: Environment): Value {
-	return _boolean(x.type == ValueType.Integer);
-}
-
-function _isFloat(x: Value, env: Environment): Value {
-	return _boolean(x.type == ValueType.Float);
-}
-
-function _isString(x: Value, env: Environment): Value {
-	return _boolean(x.type == ValueType.String);
-}
-
-function _isPath(x: Value, env: Environment): Value  {
-	return _boolean(x.type == ValueType.Path);
-}
-
-function _isList(x: Value, env: Environment): Value  {
-	return _boolean(x.type == ValueType.List);
-}
-
-function _isAttrs(x: Value, env: Environment): Value {
-	return _boolean(x.type == ValueType.Set);
-}
-
-function _isFunction(x: Value, env: Environment): Value {
-	return _boolean(
-		x.type == ValueType.Function ||
-		x.type == ValueType.PFunction
-	);
-}
-
-
-function _ceil(x: Value, env: Environment): Value {
-	return _integer(Math.ceil((x as FloatV).value));
-}
-
-function _floor(x: Value, env: Environment): Value {
-	return _integer(Math.floor((x as FloatV).value));
-}
-
-// bitAnd
-// bitOr
-// bitXor
-
-
-function _head(x: Value, env: Environment): Value {
-	expect_type(x, ValueType.List, "head");
-	if ((x as ListV).value.length == 0) {
-		throw `head cannot be applied on empty list`;
-	}
-	return (x as ListV).value[0];
-}
-
-function _tail(x: Value, env: Environment): Value {
-	expect_type(x, ValueType.List, "tail");
-	x = x as ListV;
-	if ((x as ListV).value.length == 0) {
-		throw `tail cannot be applied on empty list`;
-	}
-	return _list((x as ListV).value.slice(1));
-}
-
-function _length(x: Value, env: Environment): Value {
-	expect_type(x, ValueType.List, "length");
-	return _integer((x as ListV).value.length);
-}
-
-// TODO nix supports partial application of builtin functions
-// e.g. let addOne = x: x + 1; in map addOne
-
-// TODO all pred list
-function _all(x: Value, env: Environment): Value {
-	return _boolean();
-}
-
-// TODO any pred list
-function _any(x: Value, env: Environment): Value {
-	return _boolean();
-}
-
-// TODO elem x xs
-function _elem(x: Value, env: Environment): Value {
-	return _null();
-}
-
-// TODO elemAt xs n
-function _elemAt(x: Value, env: Environment): Value {
-	return _null();
-}
-
-// TODO groupBy f list
-function _groupBy(x: Value, env: Environment): Value {
-	return _null();
-}
-
-// TODO filter f list
-function _filter(x: Value, env: Environment): Value {
-	return _null();
-}
-
-// TODO map f list
-function _map(x: Value, env: Environment): Value {
-	return _null();
-}
-
-// TODO concat lists
-function _concat(x: Value, env: Environment): Value {
-	// TODO
-	return _list();
-}
-
-// TODO concatMap f list
-function _concatMap(x: Value, env: Environment): Value {
-	return _list();
-}
-
-
-// attrNames set
-function _attrNames(x: Value, env: Environment): Value {
-	expect_type(x, ValueType.Set, "attrNames");
-	const names = Object.keys((x as SetV).value);
-	return _list( names.map((s) => _string(s)) );
-}
-
-// TODO attrValues set
-function _attrValues(x: Value, env: Environment): Value {
-	expect_type(x, ValueType.Set, "attrValues");
-	return _list( (<any>Object).values((x as SetV).value) );
-}
-
-// TODO getAttrs s set
-function _getAttrs(x: Value, env: Environment): Value {
-	// TODO
-	return _null();
-}
-
-// TODO hasAttrs s set
-function _hasAttrs(x: Value, env: Environment): Value {
-	// TODO
-	return _null();
-}
-
-// TODO intersectAttrs e1 e2
-function _intersectAttrs(x: Value, env: Environment): Value {
-	// TODO
-	return _null();
-}
-
-// TODO mapAttrs f set
-function _mapAttrs(x: Value, env: Environment): Value {
-	return _null();
-}
-
-// TODO catAttrs attr list
-// Collect each attribute named attr from a list of attribute sets. Attrsets that don't contain the named attribute are ignored. For example,
-// builtins.catAttrs "a" [{a = 1;} {b = 0;} {a = 2;}]
-// evaluates to [1 2].
-function _catAttrs(x: Value, env: Environment): Value {
-	return _list();
 }
 
