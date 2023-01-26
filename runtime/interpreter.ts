@@ -76,7 +76,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 }
 
 function eval_identifier(id: IdentifierN, env: Environment): Value {
-	return env.get(id.name);
+	return env.resolve(id.name);
 }
 
 // TODO implement self-reference in binding expression
