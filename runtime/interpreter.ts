@@ -19,7 +19,7 @@ import {
 
 import {
 	ValueType, Value,
-	FloatV, IntegerV, BooleanV,
+	FloatV, IntegerV, BooleanV, SetV,
 	_null, _float, _integer, _boolean, _string
 } from "./values.ts";
 
@@ -53,7 +53,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		case NodeType.BinaryExpr:
 			return eval_binary_expr((expr as BinaryExprN), env);
 		default:
-			throw "Interpretation of AST node has yet to be implemented"
+			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
 	}
 }
 
@@ -63,7 +63,6 @@ function eval_identifier(id: IdentifierN, env: Environment): Value {
 
 function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	const left = evaluate(op2.left, env);
-	const right = evaluate(op2.right, env);
 	const op = op2.op;
 
 	// logical operations
@@ -73,6 +72,7 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 		case "||":
 		case "->": {
 			if (left.type == ValueType.Boolean) {
+				const right = evaluate(op2.right, env);
 				if (right.type == ValueType.Boolean) {
 					return _boolean(op_logical(
 						op, (left as BooleanV).value, (right as BooleanV).value
@@ -98,6 +98,7 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 		case "-":
 		case "*":
 		case "/": {
+			const right = evaluate(op2.right, env);
 			if (left.type == ValueType.Float) {
 				const leftv = (left as FloatV).value;
 				if (right.type == ValueType.Float) {
@@ -123,6 +124,7 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 		case ">":
 		case "<=":
 		case ">=": {
+			const right = evaluate(op2.right, env);
 			let leftv: number;
 			let rightv: number;
 			if (left.type == ValueType.Float) {
@@ -143,9 +145,24 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 		}
 	}
 
-	// TODO ?
+	// set ? key
+	if (op == "?") {
+		if (left.type == ValueType.Set) {
+			let key;
+			if (op2.right == NodeType.Identifier) {
+				key = (op2.right as IdentifierN).name;
+			} else if (op2.right == ValueType.String) {
+				key = (op2.right as StringN).value;
+			} else {
+				throw `Right operand must be an identifier in ${left.type} ${op} ${op2.right.type}`;
+			}
+			return key in (left as SetV).value;
+		} else {
+			throw `Left operand must be a set in ${left.type} ${op} ${op2.right.type}`;
+		}
+	}
 
-	throw `Unsupported binary operation: ${left.type} ${op} ${right.type}`;
+	throw `Unsupported binary operation: ${op2.left.type} ${op} ${op2.right.type}`;
 }
 
 function op_arithmetic(op: string, left: number, right: number): number {
