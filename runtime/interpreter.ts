@@ -94,7 +94,7 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 		case "||":
 		case "->": {
 			if (left.type == ValueType.Boolean) {
-				let leftv = (left as BooleanV);
+				let leftv = (left as BooleanV).value;
 				// check for possible early evaluation using only left operand value
 				if (leftv) {
 					if (op == "||" && leftv) return _boolean(true);
