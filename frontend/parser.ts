@@ -96,13 +96,13 @@ export default class Parser {
 
 	private parse_let_expr(): LetExprN {
 		this.eat();  // eat let
-		let declarations = [];
+		let bindings = [];
 		while (this.until(TokenType.In)) {
-			declarations.push(this.parse_binding());
+			bindings.push(this.parse_binding());
 		}
 		this.expect(TokenType.In, "Let expression must have an 'in'");
 		let body = this.parse_expr();
-		return { type: NodeType.LetExpr, declarations, body };
+		return { type: NodeType.LetExpr, bindings, body };
 	}
 
 	private parse_with_expr(): WithExprN {

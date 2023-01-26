@@ -60,6 +60,15 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			}
 			return set;
 		}
+		case NodeType.LetExpr: {
+			let letexpr = (expr as LetExprN);
+			let env2 = new Environment(env);
+			// FIXME binding order will matter here; rec behaviour is partially implemented
+			for (const binding in letexpr.bindings) {
+				eval_binding(binding, env2);
+			}
+			return evaluate(letexpr.body, env2);
+		}
 		default:
 			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
 	}
@@ -85,10 +94,19 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 		case "||":
 		case "->": {
 			if (left.type == ValueType.Boolean) {
+				let leftv = (left as BooleanV);
+				// check for possible early evaluation using only left operand value
+				if (leftv) {
+					if (op == "||" && leftv) return _boolean(true);
+				} else {
+					if (op == "&&") return _boolean(false);
+					if (op == "->") return _boolean(true);
+				}
+				// at this point, we need the right operand for the result
 				const right = evaluate(op2.right, env);
 				if (right.type == ValueType.Boolean) {
 					return _boolean(op_logical(
-						op, (left as BooleanV).value, (right as BooleanV).value
+						op, leftv, (right as BooleanV).value
 					));
 				} else {
 					throw `Right operand must be a boolean in ${left.type} ${op} ${op2.right.type}`;

@@ -42,7 +42,7 @@ export interface FunctionN extends ExprN {
 
 export interface LetExprN extends ExprN {
 	type: NodeType.LetExpr;
-	declarations: BindingN[];
+	bindings: BindingN[];
 	body: ExprN;
 }
 
