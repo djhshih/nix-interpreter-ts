@@ -16,10 +16,14 @@ function repl() {
 		}
 
 		// produce ast
-		const ast = parser.parse(input);
-		console.log("AST: ",  ast);
+		try {
+			const ast = parser.parse(input);
+			console.log("AST: ",  ast);
 
-		const value = interp.evaluate(ast);
-		console.log("value: ", value);
+			const value = interp.evaluate(ast);
+			console.log("value: ", value);
+		} catch (error) {
+			console.error(error);
+		}
 	}
 }
