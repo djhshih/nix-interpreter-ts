@@ -63,7 +63,6 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		case NodeType.LetExpr: {
 			let letexpr = (expr as LetExprN);
 			let env2 = new Environment(env);
-			// FIXME binding order will matter here; rec behaviour is partially implemented
 			for (const binding of letexpr.bindings) {
 				eval_binding(binding, env2);
 			}
@@ -79,8 +78,14 @@ function eval_identifier(id: IdentifierN, env: Environment): Value {
 }
 
 function eval_binding(binding: BindingN, env: Environment): Environment {
-	env.set(binding.identifier.name, evaluate(binding.value, env));
-	return env;
+	if (env.parent) {
+		// evaluate binding value in the parent environment
+		// this is to ensure that order of evaluation does not matter
+		// define the attribute in the specified environment
+		env.set(binding.identifier.name, evaluate(binding.value, env.parent));
+		return env;
+	}
+	throw `Evaluation is not permitted in the global environment`;
 }
 
 function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {

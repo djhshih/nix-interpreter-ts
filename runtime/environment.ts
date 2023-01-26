@@ -20,7 +20,7 @@ import {
 } from "./builtins/set.ts";
 
 export default class Environment {
-	private parent?: Environment;
+	public parent?: Environment;
 	private children: Environment[];
 	private attributes: Record<string, Value>;
 
