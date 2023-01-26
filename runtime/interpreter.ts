@@ -64,7 +64,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			let letexpr = (expr as LetExprN);
 			let env2 = new Environment(env);
 			// FIXME binding order will matter here; rec behaviour is partially implemented
-			for (const binding in letexpr.bindings) {
+			for (const binding of letexpr.bindings) {
 				eval_binding(binding, env2);
 			}
 			return evaluate(letexpr.body, env2);
