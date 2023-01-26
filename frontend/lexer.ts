@@ -4,7 +4,7 @@ export enum TokenType {
 	String = "str",
 	Path = "path",        // TODO
 	UnaryOp = "op1",      // - !
-	BinaryOp = "op2",     // ? ++ * / + - < > // >= <= == != && ||
+	BinaryOp = "op2",     // ? ++ * / + - // < > >= <= == != && || ->
 	Let = "let",
 	In = "in",
 	With = "with",

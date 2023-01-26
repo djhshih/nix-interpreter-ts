@@ -77,7 +77,8 @@ export function _null() {
 }
 
 export function _integer(v = 0): IntegerV {
-	return { type: ValueType.Integer, value: v };
+	// truncate towards 0
+	return { type: ValueType.Integer, value: Math.trunc(v) };
 }
 
 export function _float(v = 0): FloatV {
