@@ -53,9 +53,11 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		case NodeType.BinaryExpr:
 			return eval_binary_expr((expr as BinaryExprN), env);
 		case NodeType.Set: {
+			// TODO implement self-reference (rec) set
 			let record = (expr as SetN).elements;
 			let set = _set();
 			for (const name in record) {
+				// set is independent of env => self-referencing is disallowed in set
 				set.value[name] = evaluate(record[name], env);
 			}
 			return set;
@@ -77,6 +79,7 @@ function eval_identifier(id: IdentifierN, env: Environment): Value {
 	return env.get(id.name);
 }
 
+// TODO implement self-reference in binding expression
 function eval_binding(binding: BindingN, env: Environment): Environment {
 	if (env.parent) {
 		// evaluate binding value in the parent environment
