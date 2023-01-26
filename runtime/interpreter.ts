@@ -70,6 +70,21 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			}
 			return evaluate(letexpr.body, env2);
 		}
+		case NodeType.SelectExpr: {
+			let selexpr = (expr as SelectExprN);
+			let set =
+				selexpr.set.type == NodeType.Identifier
+				? eval_identifier(selexpr.set as IdentifierN, env)
+				: evaluate(selexpr.set, env);
+			if (set.type != ValueType.Set) {
+				throw `Invalid select expression; expecting set but got ${set.type}`;
+			}
+			let setv = (set as SetV).value;
+			if (! (selexpr.member.name in setv)) {
+				throw `Invalid key: Set ${set} does not contain key ${selexpr.member.name}`;
+			}
+			return setv[selexpr.member.name];
+		}
 		default:
 			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
 	}
