@@ -124,7 +124,7 @@ export function tokenize(s: string): Token[] {
 					} else {
 						tokens.push( token("", TokenType.String) );
 					}
-					// remove consumed characters, including matching quotes
+					// remove consumed characters, including matching quotes ''
 					ss = ss.slice(end + 2);
 				} else {
 					throw "Last characters are an unmatched ''";
@@ -151,8 +151,8 @@ export function tokenize(s: string): Token[] {
 				} else {
 					tokens.push( token("", TokenType.String) );
 				}
-				// remove consumed characters, including matching quotes
-				ss = ss.slice(end + 3);
+				// remove consumed characters, including matching quotes "
+				ss = ss.slice(end + 1);
 			} else {
 				throw "Last character is an unmatched \"";
 			}
