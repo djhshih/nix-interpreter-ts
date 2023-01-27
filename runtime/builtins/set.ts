@@ -24,19 +24,16 @@ export function _attrValues(x: Value, env: Environment): Value {
 
 // TODO getAttrs s set
 export function _getAttrs(x: Value, env: Environment): Value {
-	// TODO
 	return _null();
 }
 
 // TODO hasAttrs s set
 export function _hasAttrs(x: Value, env: Environment): Value {
-	// TODO
 	return _null();
 }
 
 // TODO intersectAttrs e1 e2
 export function _intersectAttrs(x: Value, env: Environment): Value {
-	// TODO
 	return _null();
 }
 

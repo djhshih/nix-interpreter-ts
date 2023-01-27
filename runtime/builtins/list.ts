@@ -71,7 +71,6 @@ export function _map(x: Value, env: Environment): Value {
 
 // TODO concat lists
 export function _concat(x: Value, env: Environment): Value {
-	// TODO
 	return _list();
 }
 
