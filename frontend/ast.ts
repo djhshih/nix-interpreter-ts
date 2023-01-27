@@ -7,6 +7,7 @@ export enum NodeType {
 	SelectExpr =".",
 	ApplyExpr = "call",
 	Params = "params",
+	UnaryExpr = "op1",
 	BinaryExpr = "op2",
 	List = "list",
 	Set = "set",
@@ -18,6 +19,13 @@ export enum NodeType {
 
 export interface ExprN {
 	type: NodeType
+}
+
+export interface UnaryExprN extends ExprN {
+	type: NodeType.UnaryExpr;
+	right: ExprN;
+	// must be a unary operator
+	op: string;  
 }
 
 export interface BinaryExprN extends ExprN {

@@ -11,6 +11,7 @@ import {
 	SelectExprN,
 	ApplyExprN,
 	ParamsN,
+	UnaryExprN,
 	BinaryExprN,
 	ListN,
 	SetN,
@@ -172,7 +173,7 @@ export default class Parser {
 	// 11 equality ==, inequality !=
 	// 10 comparative < <= > >=
 	// 9 update //
-	// 8 logical negation
+	// 8 logical negation !
 	// 7 addition +, subtraction -
 	// 6 multiplication *, division /
 	// 5 list concatentation ++
@@ -181,8 +182,6 @@ export default class Parser {
 	// 2 apply
 	// 1 select .
 	
-	// TODO unary - !
-
 	private parse_simple_expr(): ExprN {
 		return this.parse_logical_expr();
 	}
@@ -251,13 +250,13 @@ export default class Parser {
 	}
 
 	private parse_update_expr(): ExprN {
-		let left = this.parse_additive_expr();
+		let left = this.parse_lnegation_expr();
 
 		while (
 			this.at().value == "//"
 		) {
 			const op = this.eat().value;
-			const right = this.parse_additive_expr();
+			const right = this.parse_lnegation_expr();
 			left = {
 				type: NodeType.BinaryExpr,
 				left,
@@ -267,6 +266,19 @@ export default class Parser {
 		}
 
 		return left;
+	}
+
+	// unary logical negation
+	private parse_lnegation_expr(): ExprN {
+		if (this.at().value == "!") {
+			const op = this.eat().value;
+			const right = this.parse_additive_expr();
+			return {
+				type: NodeType.UnaryExpr, right, op
+			} as UnaryExprN;
+		}
+
+		return this.parse_additive_expr();
 	}
 
 	private parse_additive_expr(): ExprN {
@@ -329,13 +341,13 @@ export default class Parser {
 	}
 
 	private parse_has_expr(): ExprN {
-		let left = this.parse_apply_expr();
+		let left = this.parse_anegation_expr();
 
 		while (
 			this.at().value == "?"
 		) {
 			const op = this.eat().value;
-			const right = this.parse_apply_expr();
+			const right = this.parse_anegation_expr();
 			left = {
 				type: NodeType.BinaryExpr,
 				left,
@@ -345,6 +357,19 @@ export default class Parser {
 		}
 
 		return left;
+	}
+
+	// unary arithmetic negation
+	private parse_anegation_expr(): ExprN {
+		if (this.at().value == "-") {
+			const op = this.eat().value;
+			const right = this.parse_select_expr();
+			return {
+				type: NodeType.UnaryExpr, right, op
+			} as UnaryExprN;
+		}
+
+		return this.parse_select_expr();
 	}
 
 	private parse_apply_expr(): ExprN {

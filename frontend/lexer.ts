@@ -3,7 +3,7 @@ export enum TokenType {
 	Number = "num",
 	String = "str",
 	Path = "path",        // TODO
-	UnaryOp = "op1",      // - !
+	UnaryOp = "op1",      // ! - (lexer will label all '-' as binary)
 	BinaryOp = "op2",     // ? ++ * / + - // < > >= <= == != && || ->
 	Let = "let",
 	In = "in",
@@ -290,6 +290,13 @@ export function tokenize(s: string): Token[] {
 			ss[0] == ">"
 		) {
 			tokens.push( token(ss.shift(), TokenType.BinaryOp) );
+			continue;
+		}
+
+		if (
+			ss[0] == "!"
+		) {
+			tokens.push( token(ss.shift(), TokenType.UnaryOp) );
 			continue;
 		}
 
