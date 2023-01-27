@@ -111,7 +111,6 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	const op = op2.op;
 
 	// logical operations
-	// TODO lazy evaluation: need to call evaluate on right as needed
 	switch (op) {
 		case "&&":
 		case "||":
@@ -132,10 +131,10 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 						op, leftv, (right as BooleanV).value
 					));
 				} else {
-					throw `Right operand must be a boolean in ${left.type} ${op} ${op2.right.type}`;
+					throw `Expecting right operand to be a boolean for operator ${op} but got ${right.type}`;
 				}
 			} else {
-				throw `Left operand must be a boolean in ${left.type} ${op} ${op2.right.type}`;
+				throw `Expecting left operand to be a boolean for operator ${op} but got ${left.type}`;
 			}
 		}
 	}
@@ -186,14 +185,14 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 			} else if (left.type == ValueType.Integer) {
 				leftv = (left as IntegerV).value;
 			} else {
-				throw `Left operand must be a number in ${left.type} ${op} ${right.type}`;
+				throw `Expecting left operand to be a number for operator ${op} but got ${left.type}`;
 			}
 			if (right.type == ValueType.Float) {
 				rightv = (right as FloatV).value;
 			} else if (right.type == ValueType.Integer) {
 				rightv = (right as IntegerV).value;
 			} else {
-				throw `Right operand must be a number in ${left.type} ${op} ${right.type}`;
+				throw `Expecting right operand to be a number for operator ${op} but got ${right.type}`;
 			}
 			return _boolean(op_comparative(op, leftv, rightv));
 		}
@@ -208,15 +207,15 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 			} else if (op2.right.type == NodeType.String) {
 				key = (op2.right as StringN).value;
 			} else {
-				throw `Right operand must be an identifier in ${left.type} ${op} ${op2.right.type}`;
+				throw `Expecting right node to be an identifier or string for operator ${op} but got ${op2.right.type}`;
 			}
 			return _boolean(key in (left as SetV).value);
 		} else {
-			throw `Left operand must be a set in ${left.type} ${op} ${op2.right.type}`;
+			throw `Expecting left operand to be a set for operator ${op} but got ${left.type}`;
 		}
 	}
 
-	throw `Unsupported binary operation: ${op2.left.type} ${op} ${op2.right.type}`;
+	throw `Unsupported binary operation on nodes: ${op2.left.type} ${op} ${op2.right.type}`;
 }
 
 function op_arithmetic(op: string, left: number, right: number): number {
