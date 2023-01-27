@@ -134,8 +134,17 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			return setv[selexpr.member.name];
 		}
 
-		case NodeType.WithExpr: {  // TODO
-			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
+		case NodeType.WithExpr: {
+			const withexpr = (expr as WithExprN);
+			const set = evaluate(expr.env, env);
+			if (set.type != ValueType.Set) {
+				throw `Invalid with expression; expecting set but got ${set.type}`;
+			}
+			let setv = (set as SetV).value;
+			env.attach(setv);
+			let res = evaluate(expr.body, env);
+			env.dettach(setv);
+			return res;
 		}
 
 		case NodeType.ApplyExpr: {  // TODO

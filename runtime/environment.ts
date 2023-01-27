@@ -19,10 +19,12 @@ import {
 	_attrNames, _attrValues,
 } from "./builtins/set.ts";
 
+type Attributes = Record<string, Value>;
+
 export default class Environment {
 	public parent?: Environment;
-	private children: Environment[];
-	private attributes: Record<string, Value>;
+	private children: Attributes[];
+	private attributes: Attributes;
 
 	constructor(env?: Environment) {
 		this.children = [];
@@ -68,24 +70,24 @@ export default class Environment {
 			p = p.parent;
 		}
 
-		// TODO change after implementing `with`
-		// `with` should have the lowest priority
-		// children environments have lowest priorities
-		for (const child of this.children) {
-			if (child.has(name)) {
-				return child.get(name);
+		// `with` expression has lowest priority
+	  // among with expressions, latest as highest priority
+		for (const child of this.children.slice().reverse()) {
+			if (name in child) {
+				return child[name];
 			}
 		}
 
 		throw `attribute ${name} is undefined`;
 	}
 
-	public attach(env: Environment): Environment {
-		this.children.push(env);	
+	// first-in last-out
+	public attach(attrs: Attributes): Attributes {
+		this.children.push(attrs);
 		return this;
 	}
 
-	public dettach(): Environment | undefined {
+	public dettach(): Attributes | undefined {
 		return this.children.pop();
 	}
 }
