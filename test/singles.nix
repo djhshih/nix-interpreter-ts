@@ -22,7 +22,7 @@ with { x = 3; z = 4; }; z
 1 > 0 && 2 >= 1
 0 > 1 || 2 >= 1
 0 > 1 || 1 >= 1
-let s = { x = 1; }; in s ? x -> s.x
+let s = { x = 1; }; in s ? x -> s.x > 0
 "apple"
 "He said, \"I love to program!\""
 "apple" + " orange"
