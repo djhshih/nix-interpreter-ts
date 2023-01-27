@@ -406,7 +406,12 @@ export default class Parser {
 		}
 
 		if (expr.type != NodeType.ApplyExpr) {
-		 	if (!this.eof() && !this.at().type == TokenType.Semicolon) {
+		 	if (
+				!this.eof() && 
+				this.at().type != TokenType.Semicolon &&
+				this.at().type != TokenType.BinaryOp &&
+				this.at().type != TokenType.Query
+			) {
 				throw `Parsing failed: expecting ';' or eof but got ${this.at().type}`
 			}
 		}

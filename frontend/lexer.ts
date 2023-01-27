@@ -17,7 +17,7 @@ export enum TokenType {
 	Dot = ".",
 	Colon = ":",
 	Semicolon = ";",
-	Query = "?",
+	Query = "?",          // lexel will label all '?' as query
 	Ellipsis = "...",
 	OpenParen = "(",
 	CloseParen = ")",
