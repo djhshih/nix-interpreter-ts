@@ -20,7 +20,7 @@ import {
 
 import {
 	ValueType, Value,
-	FloatV, IntegerV, BooleanV, SetV,
+	FloatV, IntegerV, BooleanV, SetV, PFunctionV, FunctionV,
 	_null, _float, _integer, _boolean, _string, _set, _list, _function,
 } from "./values.ts";
 
@@ -61,15 +61,15 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			switch (op) {
 				case "-": {
 					if (right.type == ValueType.Integer) {
-						return _integer(- right.value);
+						return _integer(- (right as IntegerV).value);
 					} else if	(right.type == ValueType.Float) {
-						return _float(- right.value);
+						return _float(- (right as FloatV).value);
 					}
 					throw `Unary operator ${op} can be only be applied on a number but got ${right.type}`
 				}
 				case "!": {
 					if (right.type == ValueType.Boolean) {
-						return _boolean(! right.value);
+						return _boolean(! (right as BooleanV).value);
 					}
 					throw `Unary operator ${op} can be only be applied on a boolean but got ${right.type}`
 				}
@@ -84,7 +84,10 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		case NodeType.IfExpr: {
 			const ifexpr = (expr as IfExprN);
 			const condition = evaluate(ifexpr.condition, env);
-			if (condition.value) {
+			if (condition.type != ValueType.Boolean) {
+				throw `Expecting if condition to be a boolean but got ${condition.type}`;
+			}
+			if ((condition as BooleanV).value) {
 				return evaluate(ifexpr.left, env);
 			} else {
 				return evaluate(ifexpr.right, env);
@@ -136,18 +139,19 @@ function evaluate(expr: ExprN, env: Environment): Value {
 
 		case NodeType.WithExpr: {
 			const withexpr = (expr as WithExprN);
-			const set = evaluate(expr.env, env);
+			const set = evaluate(withexpr.env, env);
 			if (set.type != ValueType.Set) {
 				throw `Invalid with expression; expecting set but got ${set.type}`;
 			}
 			let setv = (set as SetV).value;
 			env.attach(setv);
-			let res = evaluate(expr.body, env);
-			env.dettach(setv);
+			let res = evaluate(withexpr.body, env);
+			env.dettach();
 			return res;
 		}
 
-		case NodeType.ApplyExpr: {  // TODO
+		case NodeType.ApplyExpr: {
+			return eval_apply_expr(expr as ApplyExprN, env);
 			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
 		}
 
@@ -174,6 +178,68 @@ function eval_binding(binding: BindingN, env: Environment): Environment {
 		return env;
 	}
 	throw `Evaluation is not permitted in the global environment`;
+}
+
+function eval_apply_expr(apply: ApplyExprN, env: Environment): Value {
+	let fn = evaluate(apply.fn, env);
+	// evaluate the argument in the current environment
+	let arg = evaluate(apply.arg, env);
+	switch (fn.type) {
+		case ValueType.Function: {
+			const fnv = (fn as FunctionV);
+			// private environment for the function using the enclosed
+			// environment as the parent
+			// we don't use the enclosed directly because we do not
+			// want to modify this environment (where fn was defined)
+			const env2 = new Environment(fnv.env);
+			const fnn = fnv.node;
+
+			switch (fnn.param.type) {
+				case NodeType.Identifier: {
+					env2.set((fnn.param as IdentifierN).name, arg);
+					return evaluate(fnn.body, env2);
+				}
+
+				case NodeType.Params: {
+					if (arg.type != ValueType.Set) {
+						throw `Function expects a set but got ${arg.type}`;
+					}
+					const args = (arg as SetV).value;
+					const params = (fnn.param as ParamsN);
+					// assign values to each parameter in the private environment
+					// Object.keys( params.optional ) contain all the parameter names
+					for (const name in params.optional) {
+						if (name in args) {
+							// define the parameter using the argument
+							env2.set(name, args[name]);
+						} else if (name in params.defaults) {
+							// FIXME check if evaluating the defaults in env2 is okay
+							env2.set(name, evaluate(params.defaults[name], env2));
+						} else {
+							throw `Function expects ${name} but it is missing`
+						}
+					}
+					// evaluate the result in the private environment
+					return evaluate(fnn.body, env2);
+				}
+					
+				default:
+					throw `Function unexpectedly have parameter node type ${fnn.param.type}`;
+			}
+			// evaluate the function body in the enclosed environment
+			throw `Application of user-defined function is not supported`
+			break;
+		}
+
+		case ValueType.PFunction: {
+			// primitive function can be called directly
+			return (fn as PFunctionV).obj(arg, env);
+			break;
+		}
+
+		default:
+			throw `Expecting to apply function but got ${fn.type}`;
+	}
 }
 
 function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {

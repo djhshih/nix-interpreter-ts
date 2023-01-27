@@ -537,7 +537,7 @@ export default class Parser {
 	private parse_params_and_function(): FunctionN {
 		this.eat();  // eat open brace
 		const params: ParamsN = {
-			type: NodeType.Params, optional: {}, values: {}, open: false
+			type: NodeType.Params, optional: {}, defaults: {}, open: false
 		};
 		while (!this.eof()) {
 			if (this.at().type == TokenType.Ellipsis) {
@@ -548,7 +548,7 @@ export default class Parser {
 				if (this.at().type == TokenType.Query) {
 					this.eat();  // eat the query
 					params.optional[name] = true;
-					params.values[name] = this.parse_expr();
+					params.defaults[name] = this.parse_expr();
 				} else {
 					params.optional[name] = false;
 				}

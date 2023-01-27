@@ -95,7 +95,7 @@ export interface ParamsN extends ExprN {
 	// whether each parameter is optional
 	optional: Record<string, boolean>;
 	// default values for optional parameters
-	values: Record<string, ExprN>;
+	defaults: Record<string, ExprN>;
 	// whether to allow extra arguments
 	open: boolean;
 }

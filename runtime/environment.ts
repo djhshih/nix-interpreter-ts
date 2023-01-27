@@ -82,7 +82,7 @@ export default class Environment {
 	}
 
 	// first-in last-out
-	public attach(attrs: Attributes): Attributes {
+	public attach(attrs: Attributes): Environment {
 		this.children.push(attrs);
 		return this;
 	}
