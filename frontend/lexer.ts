@@ -83,6 +83,53 @@ export function tokenize(s: string): Token[] {
 
 	while (ss.length > 0) {
 
+		// single line comments
+		if (ss[0] == "#") {
+			// ignore everything after '#' until a new tline
+			console.log("length: ", ss.length)
+			if (ss.length > 1) {
+				let end = -1;
+				for (let i = 2; i < ss.length; i++) {
+					if (ss[i] == "\n") {
+						end = i;
+						break;
+					}
+				}
+				// ignore comment
+				console.log(end);
+				if (end > 0 && end < ss.length) {
+					ss = ss.slice(end + 1);
+				} else {
+					ss = [];
+				}
+			} else {
+				ss = [];
+			}
+			continue;
+			console.log(ss);
+		}
+		
+		// multiline comments
+		if (ss[0] == "/" && ss[1] == "*") {
+			if (ss.length > 2) {
+				let end = -1;
+				for (let i = 2; i < ss.length; i++) {
+					if (ss[i-1] == "*" && ss[i] == "/") {
+						end = i;
+						break;
+					}
+				}
+				// ignore comment
+				// remove consumed characters, including matching quotes */
+				ss = ss.slice(end + 1);
+			} else {
+				throw "Comment token /* is an unmatched";
+			}
+			continue;
+			console.log(ss);
+		}
+
+
 		// parse multi-character tokens
 		// NB this needs to be handled first because tokens below
 		//    can be a prefix of a token here
