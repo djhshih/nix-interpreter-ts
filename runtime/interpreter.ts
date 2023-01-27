@@ -55,7 +55,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			return _string((expr as StringN).value);
 
 		case NodeType.UnaryExpr: {
-			const uexpr = (expr as UnaryExprN)
+			const uexpr = (expr as UnaryExprN);
 			const op = uexpr.op;
 			const right = evaluate(uexpr.right, env);
 			switch (op) {
@@ -80,6 +80,16 @@ function evaluate(expr: ExprN, env: Environment): Value {
 
 		case NodeType.BinaryExpr:
 			return eval_binary_expr((expr as BinaryExprN), env);
+
+		case NodeType.IfExpr: {
+			const ifexpr = (expr as IfExprN);
+			const condition = evaluate(ifexpr.condition, env);
+			if (condition.value) {
+				return evaluate(ifexpr.left, env);
+			} else {
+				return evaluate(ifexpr.right, env);
+			}
+		}
 
 		case NodeType.List: {
 			let xs = (expr as ListN).elements;
@@ -124,8 +134,20 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			return setv[selexpr.member.name];
 		}
 
-		default:
+		case NodeType.WithExpr: {  // TODO
 			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
+		}
+
+		case NodeType.ApplyExpr: {  // TODO
+			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
+		}
+
+		case NodeType.Function: {  // TODO
+			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
+		}
+
+		default:
+			throw `Interpretation of AST node type ${expr.type} is not supported`
 	}
 }
 

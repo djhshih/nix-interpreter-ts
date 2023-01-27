@@ -6,8 +6,8 @@
 4 / 2 + 2
 [ 1 3 5 7 ]
 { x = 1; y = 2; }
-if x > 0 then 1 else 10
 let y = 2; in y + 2
+let x = -1; in if x > 0 then 1 else 10
 x: x * 1
 let f = x: y: x + y; in f 2 3
 let s = { x = 1; y = 2; }; in with s; x
