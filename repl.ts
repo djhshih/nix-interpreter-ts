@@ -15,11 +15,11 @@ function repl() {
 			Deno.exit(1);
 		}
 
-		// produce ast
 		try {
+			// produce ast
 			const ast = parser.parse(input);
-			console.log("AST: ",  ast);
-
+			console.log("tree: ",  ast);
+			// evaluate ast
 			const value = interp.evaluate(ast);
 			console.log("value: ", value);
 		} catch (error) {
