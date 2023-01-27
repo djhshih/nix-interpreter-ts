@@ -9,6 +9,7 @@ import {
 	SelectExprN,
 	ApplyExprN,
 	ParamsN,
+	UnaryExprN,
 	BinaryExprN,
 	ListN,
 	SetN,
@@ -20,7 +21,7 @@ import {
 import {
 	ValueType, Value,
 	FloatV, IntegerV, BooleanV, SetV,
-	_null, _float, _integer, _boolean, _string, _set,
+	_null, _float, _integer, _boolean, _string, _set, _list,
 } from "./values.ts";
 
 import Environment from "./environment.ts";
@@ -41,6 +42,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 	switch (expr.type) {
 		case NodeType.Identifier:
 			return eval_identifier(expr as IdentifierN, env);
+
 		case NodeType.Number: {
 			if ((expr as NumberN).integer) {
 				return _integer((expr as NumberN).value);
@@ -48,10 +50,44 @@ function evaluate(expr: ExprN, env: Environment): Value {
 				return _float((expr as NumberN).value);
 			}
 		}
+
 		case NodeType.String:
 			return _string((expr as StringN).value);
+
+		case NodeType.UnaryExpr: {
+			const uexpr = (expr as UnaryExprN)
+			const op = uexpr.op;
+			const right = evaluate(uexpr.right, env);
+			switch (op) {
+				case "-": {
+					if (right.type == ValueType.Integer) {
+						return _integer(- right.value);
+					} else if	(right.type == ValueType.Float) {
+						return _float(- right.value);
+					}
+					throw `Unary operator ${op} can be only be applied on a number but got ${right.type}`
+				}
+				case "!": {
+					if (right.type == ValueType.Boolean) {
+						return _boolean(! right.value);
+					}
+					throw `Unary operator ${op} can be only be applied on a boolean but got ${right.type}`
+				}
+				default:
+					throw `Unsupported unary operator ${op}` 
+			}
+		}
+
 		case NodeType.BinaryExpr:
 			return eval_binary_expr((expr as BinaryExprN), env);
+
+		case NodeType.List: {
+			let xs = (expr as ListN).elements;
+			let list = _list();
+			list.value = xs.map((x) => evaluate(x, env));
+			return list;
+		}
+
 		case NodeType.Set: {
 			// TODO implement self-reference (rec) set
 			let record = (expr as SetN).elements;
@@ -62,16 +98,18 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			}
 			return set;
 		}
+
 		case NodeType.LetExpr: {
-			let letexpr = (expr as LetExprN);
+			const letexpr = (expr as LetExprN);
 			let env2 = new Environment(env);
 			for (const binding of letexpr.bindings) {
 				eval_binding(binding, env2);
 			}
 			return evaluate(letexpr.body, env2);
 		}
+
 		case NodeType.SelectExpr: {
-			let selexpr = (expr as SelectExprN);
+			const selexpr = (expr as SelectExprN);
 			let set =
 				selexpr.set.type == NodeType.Identifier
 				? eval_identifier(selexpr.set as IdentifierN, env)
@@ -85,6 +123,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			}
 			return setv[selexpr.member.name];
 		}
+
 		default:
 			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
 	}
