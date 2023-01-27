@@ -15,9 +15,10 @@ typescript 4.9
 
 ## Progress
 
-Lexer: almost; need string optimization and path.  
-Parser: almost; need unary operators.  
-Interpreter: in progress.  
+Lexer: almost; need string optimization and path lexing.  
+Parser: complete.  
+Interpreter: almost; need self-reference for set and let, and some binary operators.  
+Built-in functions: pending.  
 
 ## Usage
 
