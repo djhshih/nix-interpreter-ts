@@ -193,7 +193,8 @@ export function tokenize(s: string): Token[] {
 				if (end < 0) {
 					throw "Unexpected EOF when searching for matching \"";
 				} else if (end > 1) {
-					let str = ss.slice(1, end).join("");
+					// extract characters, join together, and remove escaped quotes
+					let str = ss.slice(1, end).join("").replaceAll('\\"', '"');
 					tokens.push( token(str, TokenType.String) );
 				} else {
 					tokens.push( token("", TokenType.String) );
