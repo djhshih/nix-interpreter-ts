@@ -21,7 +21,7 @@ import {
 import {
 	ValueType, Value,
 	FloatV, IntegerV, BooleanV, SetV,
-	_null, _float, _integer, _boolean, _string, _set, _list,
+	_null, _float, _integer, _boolean, _string, _set, _list, _function,
 } from "./values.ts";
 
 import Environment from "./environment.ts";
@@ -152,7 +152,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		}
 
 		case NodeType.Function: {  // TODO
-			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
+			return _function(env, expr as FunctionN);
 		}
 
 		default:
