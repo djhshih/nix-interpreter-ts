@@ -363,13 +363,13 @@ export default class Parser {
 	private parse_anegation_expr(): ExprN {
 		if (this.at().value == "-") {
 			const op = this.eat().value;
-			const right = this.parse_select_expr();
+			const right = this.parse_apply_expr();
 			return {
 				type: NodeType.UnaryExpr, right, op
 			} as UnaryExprN;
 		}
 
-		return this.parse_select_expr();
+		return this.parse_apply_expr();
 	}
 
 	private parse_apply_expr(): ExprN {
