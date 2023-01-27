@@ -28,8 +28,6 @@ export enum TokenType {
 	EOF = "eof"
 }
 
-// TODO recognize comments
-
 const keywords: Record<string, TokenType> = {
 	let: TokenType.Let,
 	in: TokenType.In,
