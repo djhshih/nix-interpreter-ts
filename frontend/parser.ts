@@ -399,6 +399,7 @@ export default class Parser {
 		) {
 			let expr2 = this.parse_select_expr();
 			expr = {
+				type: NodeType.ApplyExpr,
 				fn: expr,
 				arg: expr2,
 			} as ApplyExprN;
