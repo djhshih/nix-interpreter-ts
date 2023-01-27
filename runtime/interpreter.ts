@@ -213,8 +213,9 @@ function eval_apply_expr(apply: ApplyExprN, env: Environment): Value {
 							// define the parameter using the argument
 							env2.set(name, args[name]);
 						} else if (name in params.defaults) {
-							// FIXME check if evaluating the defaults in env2 is okay
-							env2.set(name, evaluate(params.defaults[name], env2));
+							// define the parameter using the default expression evaluated
+							// in the enclosed environment
+							env2.set(name, evaluate(params.defaults[name], fnv.env));
 						} else {
 							throw `Function expects ${name} but it is missing`
 						}
