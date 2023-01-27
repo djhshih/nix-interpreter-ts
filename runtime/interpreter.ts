@@ -151,7 +151,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
 		}
 
-		case NodeType.Function: {  // TODO
+		case NodeType.Function: {
 			return _function(env, expr as FunctionN);
 		}
 
