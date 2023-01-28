@@ -16,7 +16,7 @@ export function _attrNames(x: Value, env: Environment): Value {
 	return _list( names.map((s) => _string(s)) );
 }
 
-// TODO attrValues set
+// attrValues set
 export function _attrValues(x: Value, env: Environment): Value {
 	expect_type(x, ValueType.Set, "attrValues");
 	return _list( (<any>Object).values((x as SetV).value) );
