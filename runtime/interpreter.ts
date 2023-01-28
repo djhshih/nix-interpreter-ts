@@ -20,7 +20,7 @@ import {
 
 import {
 	ValueType, Value,
-	FloatV, IntegerV, BooleanV, SetV, PFunctionV, FunctionV,
+	FloatV, IntegerV, BooleanV, SetV, PFunctionV, FunctionV, StringV, PathV,
 	_null, _float, _integer, _boolean, _string, _set, _list, _function,
 } from "./values.ts";
 
@@ -279,8 +279,28 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	// equality operations
 	// TODO == !=
 
-	// string/path concatenations
-	// TODO ++
+	// string and path concatenations
+	if (op == "+") {
+	 	if (left.type == ValueType.String) {
+			const right = evaluate(op2.right, env);
+			if (right.type == ValueType.String) {
+				return _string((left as StringV).value + (right as StringV).value);
+			} else if (right.type == ValueType.Path) {
+				return _string((left as StringV).value + (right as PathV).value);
+			} else {
+				throw `Path can only be concatenation with another path or string but got ${right.type}`
+			}
+		} else if (left.type == ValueType.Path) {
+			const right = evaluate(op2.right, env);
+			if (right.type == ValueType.Path) {
+				return _string((left as PathV).value + (right as PathV).value);
+			} else if (right.type == ValueType.String) {
+				return _string((left as PathV).value + (right as StringV).value);
+			} else {
+				throw `Path can only be concatenation with another path or string but got ${right.type}`
+			}
+		}
+	}
 
 	// arithmetic and comparison operations
 	switch (op) {
