@@ -277,7 +277,16 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	}
 
 	// equality operations
-	// TODO == !=
+	if (op == "==") {
+		const right = evaluate(op2.right, env);
+		return _boolean( op_equality(left, right) );
+	}
+
+	// inequality operations
+	if (op == "!=") {
+		const right = evaluate(op2.right, env);
+		return _boolean( ! op_equality(left, right) );
+	}
 
 	// string and path concatenations
 	if (op == "+") {
@@ -422,3 +431,16 @@ function op_logical(op: string, left: boolean, right: boolean): boolean {
 	}
 }
 
+// FIXME implement deep equality for list and set
+function op_equality(left: Value, right: Value): boolean {
+	if (
+		left.type == ValueType.Function || left.type == ValueType.PFunction ||
+		right.type == ValueType.Function || right.type == ValueType.PFunction
+	) {
+		// check for reference identity
+		// NB  original nix seems to always return false on equality
+		//     operations involving functions
+		return left == right;
+	}
+	return (left as any).value == (right as any).value;
+}
