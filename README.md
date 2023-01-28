@@ -17,7 +17,7 @@ typescript 4.9
 
 Lexer: almost; need string optimization and path lexing.  
 Parser: complete.  
-Interpreter: almost; need self-reference for set and let, and some binary operators.  
+Interpreter: almost; need self-reference for set and let; need deep equality.  
 Built-in functions: pending.  
 
 ## Usage
