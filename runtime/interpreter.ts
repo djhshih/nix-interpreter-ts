@@ -19,7 +19,7 @@ import {
 } from "../frontend/ast.ts";
 
 import {
-	ValueType, Value,
+	ValueType, Value, Attributes,
 	FloatV, IntegerV, BooleanV, SetV, PFunctionV, FunctionV, StringV, PathV,
 	_null, _float, _integer, _boolean, _string, _set, _list, _function,
 } from "./values.ts";
@@ -361,6 +361,31 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 				throw `Expecting right operand to be a number for operator ${op} but got ${right.type}`;
 			}
 			return _boolean(op_comparative(op, leftv, rightv));
+		}
+	}
+
+	// update operation
+	// in "a // b", overwrite attrributes in a with attributes in b
+	if (op == "//") {
+		if (left.type == ValueType.Set) {
+			let leftv = (left as SetV).value;
+			const right = evaluate(op2.right, env);
+			if (right.type == ValueType.Set) {
+				let rightv = (right as SetV).value;
+				// update or add attributes in left using right
+				let res: Attributes = {};
+				for (const key in leftv) {
+					res[key] = leftv[key];
+				}
+				for (const key in rightv) {
+					res[key] = rightv[key];
+				}
+				return _set(res);
+			} else {
+				throw `Expecting right operand to be a set for operator ${op} but got ${left.type}`;
+			}
+		} else {
+			throw `Expecting left operand to be a set for operator ${op} but got ${left.type}`;
 		}
 	}
 

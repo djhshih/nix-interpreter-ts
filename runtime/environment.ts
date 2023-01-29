@@ -1,5 +1,5 @@
 import {
-	Value, ValueType,
+	Value, ValueType, Attributes,
 	StringV, ListV, FloatV, SetV,
 	_null, _boolean, _integer, _list, _string, _primfn
 } from "./values.ts";
@@ -19,7 +19,6 @@ import {
 	_attrNames, _attrValues,
 } from "./builtins/set.ts";
 
-type Attributes = Record<string, Value>;
 
 export default class Environment {
 	public parent?: Environment;

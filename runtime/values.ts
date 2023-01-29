@@ -14,6 +14,8 @@ export enum ValueType {
 	PFunction = "pfn",  // primitive function
 }
 
+export type Attributes = Record<string, Value>;
+
 export interface Value {
 	type: ValueType;
 }
@@ -55,7 +57,7 @@ export interface ListV extends Value {
 
 export interface SetV extends Value {
 	type: ValueType.Set;
-	value: Record<string, Value>;
+	value: Attributes;
 }
 
 export interface FunctionV extends Value {
@@ -97,7 +99,7 @@ export function _list(v: Value[] = []): ListV {
 	return { type: ValueType.List, value: v };
 }
 
-export function _set(v: Record<string, Value> = {}): SetV {
+export function _set(v: Attributes = {}): SetV {
 	return { type: ValueType.Set, value: v };
 }
 

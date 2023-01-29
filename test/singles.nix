@@ -46,3 +46,8 @@ let x = 2; in x != 0
 [ 1 2 3 ] != [ 2 3 4 5 ]
 { x = 1; } == { x = 1; }
 { x = 1; y = 1; } == { x = 1; }
+# comment
+1 # comment
+1 /* comment */ 1
+/* comment */
+{ x = 4; y = 2; z = 3; } // { w = 0; x = 1; }
