@@ -3,6 +3,8 @@ import { readLines } from "https://deno.land/std@0.173.0/io/read_lines.ts";
 import Parser from "./frontend/parser.ts";
 import Interpreter from "./runtime/interpreter.ts";
 
+// TODO check return values automatically
+
 run_lines("./test/singles.nix");
 run_all("./test/multiline.nix");
 
