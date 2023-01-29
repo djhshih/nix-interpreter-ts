@@ -23,6 +23,10 @@ typescript 4.9
 - built-in functions
 - path
 
+See full list of pending items using `ripgrep` by
+```{bash}
+rg TODO
+```
 
 ## Divergence
 
