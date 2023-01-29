@@ -365,7 +365,7 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	}
 
 	// update operation
-	// in "a // b", overwrite attrributes in a with attributes in b
+	// in "a // b", overwrite attributes in a with attributes in b
 	if (op == "//") {
 		if (left.type == ValueType.Set) {
 			let leftv = (left as SetV).value;
