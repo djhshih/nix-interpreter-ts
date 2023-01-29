@@ -13,12 +13,28 @@ deno 1.29
 typescript 4.9
 ```
 
-## Progress
+## Pending
 
-Lexer: almost; need string optimization and path lexing.  
-Parser: complete.  
-Interpreter: almost; need self-reference for set and let; need deep equality; need update operator.  
-Built-in functions: pending.  
+- self-reference set
+- self-reference let expression
+- deep equality for set
+- deep equality for list
+- @ notation for parameter set
+- built-in functions
+- path
+
+
+## Divergence
+
+Nix: equality expression always returns false for functions.  
+Here: equality on functions is based on reference.  
+
+Nix: `inherit` keyword is used to inherit attributes: `{ inherit a b; c = 1; }`
+Here: `{ a; b; c = 1; }`
+
+Nix: sets cannot self-reference without the `rec` keyword
+Here: all sets can self-reference
+
 
 ## Usage
 
