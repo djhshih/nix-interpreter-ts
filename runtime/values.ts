@@ -3,6 +3,7 @@ import { FunctionN } from "../frontend/ast.ts";
 
 export enum ValueType {
 	Null = "null",
+	Dependent = "dep",
 	Integer = "int",
 	Float  = "float",
 	Boolean = "bool",
@@ -23,6 +24,14 @@ export interface Value {
 export interface NullV extends Value {
 	type: ValueType.Null;
 	value: null;
+}
+
+// Stores all dependent attributes.
+// Operations on DependentV return another DependentV.
+export interface DependentV extends Value {
+	type: ValueType.Dependent;
+	// native Set type to hold attribute names
+	depends: Set<string>;
 }
 
 export interface IntegerV extends Value {
@@ -76,6 +85,10 @@ export type FunctionObject = (arg: Value, env: Environment) => Value;
 
 export function _null() {
 	return { type: ValueType.Null, value: null } as NullV;
+}
+
+export function _dependent(v: any = []) {
+	return { type: ValueType.Dependent, depends: new Set<string>(v) };
 }
 
 export function _integer(v = 0): IntegerV {

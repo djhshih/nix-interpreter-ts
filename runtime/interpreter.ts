@@ -21,10 +21,14 @@ import {
 import {
 	ValueType, Value, Attributes,
 	FloatV, IntegerV, BooleanV, SetV, PFunctionV, FunctionV, StringV, PathV,
+	DependentV,
 	_null, _float, _integer, _boolean, _string, _set, _list, _function,
+	_dependent,
 } from "./values.ts";
 
 import Environment from "./environment.ts";
+
+import Graph from "./graph.ts";
 
 export default class Interpreter {
 	private env: Environment;
@@ -102,8 +106,52 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		}
 
 		case NodeType.Set: {
-			// TODO implement self-reference (rec) set
-			let record = (expr as SetN).elements;
+			let setn =(expr as SetN);
+			if (setn.rec) {
+				// self-reference (rec) set
+				let env2 = new Environment(env);
+				let record = setn.elements;
+				let set = _set();
+				let graph = new Graph<string>();
+				// when an attr x is defined in env and re-defined in
+				// the set, we will not shadow x as intended
+				// so, we need to do a first pass through record to
+				// define all attribute as dependent
+				for (const dest in record) {
+					env2.set(dest, _dependent([dest]));
+				}
+				// define attributes
+				for (const dest in record) {
+					let value = evaluate(record[dest], env2);
+					if (value.type != ValueType.Dependent) {
+						set.value[dest] = value;
+						env2.set(dest, value);
+						graph.add_indep_node(dest);
+					} else {
+						// value depends an attribute that that is yet to be defined
+						// add to dependency graph
+						graph.add_in_edges(dest, (value as DependentV).depends);
+					}
+				}
+				// resolve dependencies
+				if (graph.size() > 0) {
+					// at least one attr remains a dependent value
+					// generate dependent attrs in topological order
+					let dep_sorted = graph.sort();	
+					// now, we can just evaluate the attributes in order
+					for (const dest of dep_sorted) {
+						if (set.value[dest]) continue;
+						let value = evaluate(record[dest], env2);
+						set.value[dest] = value;
+						env2.set(dest, value);
+					}
+				}
+
+				return set;
+			}
+
+			// non-self-referencing set
+			let record = setn.elements;
 			let set = _set();
 			for (const name in record) {
 				// set is independent of env => self-referencing is disallowed in set
@@ -238,6 +286,9 @@ function eval_apply_expr(apply: ApplyExprN, env: Environment): Value {
 			break;
 		}
 
+		case ValueType.Dependent:
+			return fn;
+
 		default:
 			throw `Expecting to apply function but got ${fn.type}`;
 	}
@@ -246,6 +297,18 @@ function eval_apply_expr(apply: ApplyExprN, env: Environment): Value {
 function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	const left = evaluate(op2.left, env);
 	const op = op2.op;
+
+	if (left.type == ValueType.Dependent) {
+		const right = evaluate(op2.right, env);
+		if (right.type == ValueType.Dependent) {
+			let depv = _dependent( (left as DependentV).depends );
+			for (const d of (right as DependentV).depends) {
+				depv.depends.add(d);
+			}
+			return depv;
+		}
+		return left;
+	}
 
 	// logical operations
 	switch (op) {

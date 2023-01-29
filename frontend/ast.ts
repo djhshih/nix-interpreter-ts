@@ -86,7 +86,7 @@ export interface ListN extends ExprN {
 
 export interface SetN extends ExprN {
 	type: NodeType.Set;
-	elements: Record<string, ExprN>;	
+	elements: Record<string, ExprN>;
 	rec: boolean;
 }
 

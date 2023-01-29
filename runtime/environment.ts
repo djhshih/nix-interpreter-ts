@@ -1,7 +1,7 @@
 import {
 	Value, ValueType, Attributes,
-	StringV, ListV, FloatV, SetV,
-	_null, _boolean, _integer, _list, _string, _primfn
+	StringV, ListV, FloatV, SetV, DependentV,
+	_null, _boolean, _integer, _list, _string, _primfn, _dependent
 } from "./values.ts";
 
 import {
@@ -38,7 +38,9 @@ export default class Environment {
 
 	public set(name: string, value: Value): Environment {
 		if (name in this.attributes) {
-			throw `attribute ${name} has already been defined in the current environment`;
+			if (this.attributes[name].type != ValueType.Dependent) {
+				throw `attribute ${name} has already been defined in the current environment`;
+			}
 		}
 		this.attributes[name] = value;	
 		return this;
@@ -77,7 +79,7 @@ export default class Environment {
 			}
 		}
 
-		throw `attribute ${name} is undefined`;
+		return _dependent( [ name ] );
 	}
 
 	// first-in last-out
