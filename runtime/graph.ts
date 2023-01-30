@@ -26,7 +26,7 @@ export default class Graph<T extends PropertyKey> {
 		return this.indep_nodes.add(node);
 	}
 
-	// topological sort
+	// topological sort using Kahn's algorithm
 	public sort(): T[] {
 		let sorted: T[] = [];	
 
