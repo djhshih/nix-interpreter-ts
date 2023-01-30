@@ -30,6 +30,8 @@ import Environment from "./environment.ts";
 
 import Graph from "./graph.ts";
 
+// TODO handle dependent value type all expressions
+
 export default class Interpreter {
 	private env: Environment;
 
