@@ -137,11 +137,11 @@ function evaluate(expr: ExprN, env: Environment): Value {
 				if (graph.size() > 0) {
 					// at least one attr remains a dependent value
 					// generate dependent attrs in topological order
-					let dep_sorted = graph.sort();	
+					let dep_sorted = graph.sort();
 					// now, we can just evaluate the attributes in order
 					for (const dest of dep_sorted) {
 						if (env2.has(dest, true)) continue;
-						let value = evaluate(record[dest], env2);
+						const value = evaluate(record[dest], env2);
 						env2.set(dest, value);
 					}
 				}
@@ -150,8 +150,8 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			}
 
 			// non-self-referencing set
-			let record = setn.elements;
-			let set = _set();
+			const record = setn.elements;
+			const set = _set();
 			for (const name in record) {
 				// set is independent of env => self-referencing is disallowed in set
 				set.value[name] = evaluate(record[name], env);
@@ -161,9 +161,41 @@ function evaluate(expr: ExprN, env: Environment): Value {
 
 		case NodeType.LetExpr: {
 			const letexpr = (expr as LetExprN);
-			let env2 = new Environment(env);
+			const env2 = new Environment(env);
+			const graph = new Graph<string>();
+			// set all to-be-defined attribute to dependent values
+			// so that the attributes are shadowed
 			for (const binding of letexpr.bindings) {
-				eval_binding(binding, env2);
+				env2.set(binding.identifier.name, _dependent(binding.identifier.name));
+			}
+			for (const binding of letexpr.bindings) {
+				const value = evaluate(binding.value, env2);
+				if (value.type != ValueType.Dependent) {
+					env2.set(binding.identifier.name, value);
+					graph.add_indep_node(binding.identifier.name);
+				} else {
+					// value depends an attribute that that is yet to be defined
+					// add to dependency graph
+					graph.add_in_edges(
+						binding.identifier.name,
+						(value as DependentV).depends
+					);
+				}
+			}
+			// resolve dependencies
+			if (graph.size() > 0) {
+				// at least one attr remains a dependent value
+				// generate dependent attrs in topological order
+				const dep_sorted = graph.sort();
+				// now, we can just evaluate the attributes in order
+				for (const dest of dep_sorted) {
+					if (env2.has(dest, true)) continue;
+					// we know for sure that binding exists in bindings
+					const binding =
+						letexpr.bindings.find(x => x.identifier.name == dest) as BindingN;
+					const value = evaluate(binding.value, env2);
+					env2.set(dest, value);
+				}
 			}
 			return evaluate(letexpr.body, env2);
 		}
@@ -213,18 +245,6 @@ function evaluate(expr: ExprN, env: Environment): Value {
 
 function eval_identifier(id: IdentifierN, env: Environment): Value {
 	return env.resolve(id.name);
-}
-
-// TODO implement self-reference in binding expression
-function eval_binding(binding: BindingN, env: Environment): Environment {
-	if (env.parent) {
-		// evaluate binding value in the parent environment
-		// this is to ensure that order of evaluation does not matter
-		// define the attribute in the specified environment
-		env.set(binding.identifier.name, evaluate(binding.value, env.parent));
-		return env;
-	}
-	throw `Evaluation is not permitted in the global environment`;
 }
 
 function eval_apply_expr(apply: ApplyExprN, env: Environment): Value {

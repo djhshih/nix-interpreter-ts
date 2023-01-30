@@ -50,6 +50,7 @@ export interface FunctionN extends ExprN {
 
 export interface LetExprN extends ExprN {
 	type: NodeType.LetExpr;
+	// TODO refactor as Record
 	bindings: BindingN[];
 	body: ExprN;
 }
