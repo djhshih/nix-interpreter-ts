@@ -20,6 +20,7 @@ typescript 4.9
 - @ notation for parameter set
 - built-in functions
 - interpolation
+- assert
 - path
 
 See full list of pending items using `ripgrep` by
