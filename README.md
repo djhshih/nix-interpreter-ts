@@ -15,8 +15,6 @@ typescript 4.9
 
 ## Pending
 
-- self-reference set
-- self-reference let expression
 - deep equality for set
 - deep equality for list
 - @ notation for parameter set
