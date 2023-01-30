@@ -113,7 +113,6 @@ function evaluate(expr: ExprN, env: Environment): Value {
 				// self-reference (rec) set
 				let env2 = new Environment(env);
 				let record = setn.elements;
-				let set = _set();
 				let graph = new Graph<string>();
 				// when an attr x is defined in env and re-defined in
 				// the set, we will not shadow x as intended
@@ -126,7 +125,6 @@ function evaluate(expr: ExprN, env: Environment): Value {
 				for (const dest in record) {
 					let value = evaluate(record[dest], env2);
 					if (value.type != ValueType.Dependent) {
-						set.value[dest] = value;
 						env2.set(dest, value);
 						graph.add_indep_node(dest);
 					} else {
@@ -142,14 +140,13 @@ function evaluate(expr: ExprN, env: Environment): Value {
 					let dep_sorted = graph.sort();	
 					// now, we can just evaluate the attributes in order
 					for (const dest of dep_sorted) {
-						if (set.value[dest]) continue;
+						if (env2.has(dest, true)) continue;
 						let value = evaluate(record[dest], env2);
-						set.value[dest] = value;
 						env2.set(dest, value);
 					}
 				}
 
-				return set;
+				return _set(env2.attributes);
 			}
 
 			// non-self-referencing set

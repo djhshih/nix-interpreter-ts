@@ -23,7 +23,7 @@ import {
 export default class Environment {
 	public parent?: Environment;
 	private children: Attributes[];
-	private attributes: Attributes;
+	public attributes: Attributes;
 
 	constructor(env?: Environment) {
 		this.children = [];
@@ -37,17 +37,19 @@ export default class Environment {
 	}	
 
 	public set(name: string, value: Value): Environment {
-		if (name in this.attributes) {
-			if (this.attributes[name].type != ValueType.Dependent) {
-				throw `attribute ${name} has already been defined in the current environment`;
-			}
+		if (this.has(name, true)) {
+			throw `attribute ${name} has already been defined in the current environment`;
 		}
 		this.attributes[name] = value;	
 		return this;
 	}
-
-	public has(name: string): boolean {
-		return name in this.attributes;
+	
+	// independent: attribute must be independent
+	public has(name: string, independent: boolean = false): boolean {
+		if (name in this.attributes) {
+			return !independent || this.attributes[name].type != ValueType.Dependent;
+		}
+		return false;
 	}
 
 	// get value of attribute in current environment
