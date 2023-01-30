@@ -30,7 +30,6 @@ import Environment from "./environment.ts";
 
 import Graph from "./graph.ts";
 
-// TODO handle dependent value type all expressions
 
 export default class Interpreter {
 	private env: Environment;
@@ -64,6 +63,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			const uexpr = (expr as UnaryExprN);
 			const op = uexpr.op;
 			const right = evaluate(uexpr.right, env);
+			if (right.type == ValueType.Dependent) return right;
 			switch (op) {
 				case "-": {
 					if (right.type == ValueType.Integer) {
@@ -90,6 +90,18 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		case NodeType.IfExpr: {
 			const ifexpr = (expr as IfExprN);
 			const condition = evaluate(ifexpr.condition, env);
+			if (condition.type == ValueType.Dependent) {
+				const left = evaluate(ifexpr.left, env);
+				const right = evaluate(ifexpr.right, env);
+				let res = (condition as DependentV);
+				if (left.type == ValueType.Dependent) {
+					res = merge_dependents(res, left as DependentV);
+				}
+				if (right.type == ValueType.Dependent) {
+					res = merge_dependents(res, right as DependentV);
+				}
+				return res;
+			}
 			if (condition.type != ValueType.Boolean) {
 				throw `Expecting if condition to be a boolean but got ${condition.type}`;
 			}
@@ -103,7 +115,17 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		case NodeType.List: {
 			let xs = (expr as ListN).elements;
 			let list = _list();
-			list.value = xs.map((x) => evaluate(x, env));
+			list.value = xs.map(x => evaluate(x, env));
+			if (env.allowDependent) {
+				// check for dependent values
+				let deps = list.value.filter(x => x.type == ValueType.Dependent);
+				if (deps.length > 0) {
+					return deps.reduce(
+						(acc, x) => merge_dependents(acc as DependentV, x as DependentV),
+						_dependent()
+					);
+				}
+			}
 			return list;
 		}
 
@@ -253,6 +275,14 @@ function eval_apply_expr(apply: ApplyExprN, env: Environment): Value {
 	let fn = evaluate(apply.fn, env);
 	// evaluate the argument in the current environment
 	let arg = evaluate(apply.arg, env);
+
+	if (fn.type == ValueType.Dependent) {
+		if (arg.type == ValueType.Dependent) {
+			return merge_dependents(fn as DependentV, arg as DependentV);
+		}
+		return fn;
+	}
+
 	switch (fn.type) {
 		case ValueType.Function: {
 			const fnv = (fn as FunctionV);
@@ -307,15 +337,12 @@ function eval_apply_expr(apply: ApplyExprN, env: Environment): Value {
 			break;
 		}
 
-		case ValueType.Dependent:
-			return fn;
-
 		default:
 			throw `Expecting to apply function but got ${fn.type}`;
 	}
 }
 
-function merge_dependents(left: DependentV, right: DependentV) {
+function merge_dependents(left: DependentV, right: DependentV): DependentV {
 		let depv = _dependent( left.depends );
 		for (const d of right.depends) {
 			depv.depends.add(d);

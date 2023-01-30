@@ -24,7 +24,7 @@ export default class Environment {
 	public parent?: Environment;
 	private children: Attributes[];
 	public attributes: Attributes;
-	private allowDependent: boolean;
+	public allowDependent: boolean;
 
 	constructor(env?: Environment, allowDependent = false) {
 		this.children = [];

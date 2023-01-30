@@ -83,11 +83,11 @@ export interface PFunctionV extends Value {
 export type FunctionObject = (arg: Value, env: Environment) => Value;
 
 
-export function _null() {
+export function _null(): NullV {
 	return { type: ValueType.Null, value: null } as NullV;
 }
 
-export function _dependent(v: any = []) {
+export function _dependent(v: any = []): DependentV {
 	return { type: ValueType.Dependent, depends: new Set<string>(v) };
 }
 
@@ -120,7 +120,7 @@ export function _function(env: Environment, fn: FunctionN): FunctionV {
 	return { type: ValueType.Function, env: env, node: fn };
 }
 
-export function _primfn(obj: FunctionObject) {
+export function _primfn(obj: FunctionObject): PFunctionV {
 	return { type: ValueType.PFunction, obj: obj };	
 }
 
