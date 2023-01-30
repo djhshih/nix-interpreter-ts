@@ -24,10 +24,12 @@ export default class Environment {
 	public parent?: Environment;
 	private children: Attributes[];
 	public attributes: Attributes;
+	private allowDependent: boolean;
 
-	constructor(env?: Environment) {
+	constructor(env?: Environment, allowDependent = false) {
 		this.children = [];
 		this.attributes = {};
+		this.allowDependent = allowDependent;
 
 		if (env) {
 			this.parent = env;
@@ -81,7 +83,11 @@ export default class Environment {
 			}
 		}
 
-		return _dependent( [ name ] );
+		if (this.allowDependent) {
+			return _dependent( [ name ] );
+		} else {
+			throw `Attribute ${name} has not been defined`
+		}
 	}
 
 	// first-in last-out

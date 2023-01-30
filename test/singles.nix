@@ -56,3 +56,4 @@ let x = 2; in x != 0
 let x = 10; in rec { z = x + 1; x = 2; y = z + 10; }
 let x = 10; in { z = x + 1; x = 2; y = z + 10; }
 let x = 10; in let z = x + 1; x = 2; y = z + 10; in [z x y]
+isNull x

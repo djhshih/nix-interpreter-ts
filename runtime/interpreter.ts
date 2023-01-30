@@ -111,7 +111,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			let setn =(expr as SetN);
 			if (setn.rec) {
 				// self-reference (rec) set
-				let env2 = new Environment(env);
+				let env2 = new Environment(env, true);
 				let record = setn.elements;
 				let graph = new Graph<string>();
 				// when an attr x is defined in env and re-defined in
@@ -161,7 +161,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 
 		case NodeType.LetExpr: {
 			const letexpr = (expr as LetExprN);
-			const env2 = new Environment(env);
+			const env2 = new Environment(env, true);
 			const graph = new Graph<string>();
 			// set all to-be-defined attribute to dependent values
 			// so that the attributes are shadowed
@@ -206,6 +206,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 				selexpr.set.type == NodeType.Identifier
 				? eval_identifier(selexpr.set as IdentifierN, env)
 				: evaluate(selexpr.set, env);
+			if (set.type == ValueType.Dependent) return set;
 			if (set.type != ValueType.Set) {
 				throw `Invalid select expression; expecting set but got ${set.type}`;
 			}
@@ -219,6 +220,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		case NodeType.WithExpr: {
 			const withexpr = (expr as WithExprN);
 			const set = evaluate(withexpr.env, env);
+			if (set.type == ValueType.Dependent) return set;
 			if (set.type != ValueType.Set) {
 				throw `Invalid with expression; expecting set but got ${set.type}`;
 			}
