@@ -441,17 +441,9 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 				return _list( 
 					(left as ListV).value.concat( (right as ListV).value )
 				);
-			} else if (right.type == ValueType.Dependent) {
-				return right;
 			} else {
 				throw `Expecting right operand to be a list for operator ${op} but got ${left.type}`;
 			}
-		} else if (left.type == ValueType.Dependent) {
-			const right = evaluate(op2.right, env);
-			if (right.type == ValueType.Dependent) {
-				return merge_dependents(left as DependentV, right as DependentV);	
-			}
-			return left;	
 		} else {
 			throw `Expecting left operand to be a list for operator ${op} but got ${left.type}`;
 		}
