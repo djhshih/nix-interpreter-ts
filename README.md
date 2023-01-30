@@ -19,6 +19,7 @@ typescript 4.9
 - deep equality for list
 - @ notation for parameter set
 - built-in functions
+- interpolation
 - path
 
 See full list of pending items using `ripgrep` by
