@@ -21,7 +21,7 @@ import {
 import {
 	ValueType, Value, Attributes,
 	FloatV, IntegerV, BooleanV, SetV, PFunctionV, FunctionV, StringV, PathV,
-	DependentV,
+	DependentV, ListV,
 	_null, _float, _integer, _boolean, _string, _set, _list, _function,
 	_dependent,
 } from "./values.ts";
@@ -296,6 +296,14 @@ function eval_apply_expr(apply: ApplyExprN, env: Environment): Value {
 	}
 }
 
+function merge_dependents(left: DependentV, right: DependentV) {
+		let depv = _dependent( left.depends );
+		for (const d of right.depends) {
+			depv.depends.add(d);
+		}
+		return depv;
+}
+
 function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	const left = evaluate(op2.left, env);
 	const op = op2.op;
@@ -303,11 +311,7 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	if (left.type == ValueType.Dependent) {
 		const right = evaluate(op2.right, env);
 		if (right.type == ValueType.Dependent) {
-			let depv = _dependent( (left as DependentV).depends );
-			for (const d of (right as DependentV).depends) {
-				depv.depends.add(d);
-			}
-			return depv;
+			return merge_dependents(left as DependentV, right as DependentV);
 		}
 		return left;
 	}
@@ -426,6 +430,30 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 				throw `Expecting right operand to be a number for operator ${op} but got ${right.type}`;
 			}
 			return _boolean(op_comparative(op, leftv, rightv));
+		}
+	}
+	
+	// concatentation operation
+	if (op == "++") {
+		if (left.type == ValueType.List) {
+			const right = evaluate(op2.right, env);
+			if (right.type == ValueType.List) {
+				return _list( 
+					(left as ListV).value.concat( (right as ListV).value )
+				);
+			} else if (right.type == ValueType.Dependent) {
+				return right;
+			} else {
+				throw `Expecting right operand to be a list for operator ${op} but got ${left.type}`;
+			}
+		} else if (left.type == ValueType.Dependent) {
+			const right = evaluate(op2.right, env);
+			if (right.type == ValueType.Dependent) {
+				return merge_dependents(left as DependentV, right as DependentV);	
+			}
+			return left;	
+		} else {
+			throw `Expecting left operand to be a list for operator ${op} but got ${left.type}`;
 		}
 	}
 

@@ -52,5 +52,6 @@ let x = 2; in x != 0
 /* comment */
 { x = 4; y = 2; z = 3; } // { w = 0; x = 1; }
 [ (1 + 2) 3 ]
+[ 1 2 3] ++ [4 5 6]
 let x = 1; in rec { z = x + 1; x = 2; y = z + 10; }
 let x = 1; in { z = x + 1; x = 2; y = z + 10; }
