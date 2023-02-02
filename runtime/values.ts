@@ -3,6 +3,7 @@ import { FunctionN } from "../frontend/ast.ts";
 
 export enum ValueType {
 	Null = "null",
+	Dependent = "dep",
 	Integer = "int",
 	Float  = "float",
 	Boolean = "bool",
@@ -14,6 +15,8 @@ export enum ValueType {
 	PFunction = "pfn",  // primitive function
 }
 
+export type Attributes = Record<string, Value>;
+
 export interface Value {
 	type: ValueType;
 }
@@ -21,6 +24,14 @@ export interface Value {
 export interface NullV extends Value {
 	type: ValueType.Null;
 	value: null;
+}
+
+// Stores all dependent attributes.
+// Operations on DependentV return another DependentV.
+export interface DependentV extends Value {
+	type: ValueType.Dependent;
+	// native Set type to hold attribute names
+	depends: Set<string>;
 }
 
 export interface IntegerV extends Value {
@@ -55,7 +66,7 @@ export interface ListV extends Value {
 
 export interface SetV extends Value {
 	type: ValueType.Set;
-	value: Record<string, Value>;
+	value: Attributes;
 }
 
 export interface FunctionV extends Value {
@@ -72,8 +83,12 @@ export interface PFunctionV extends Value {
 export type FunctionObject = (arg: Value, env: Environment) => Value;
 
 
-export function _null() {
+export function _null(): NullV {
 	return { type: ValueType.Null, value: null } as NullV;
+}
+
+export function _dependent(v: any = []): DependentV {
+	return { type: ValueType.Dependent, depends: new Set<string>(v) };
 }
 
 export function _integer(v = 0): IntegerV {
@@ -97,7 +112,7 @@ export function _list(v: Value[] = []): ListV {
 	return { type: ValueType.List, value: v };
 }
 
-export function _set(v: Record<string, Value> = {}): SetV {
+export function _set(v: Attributes = {}): SetV {
 	return { type: ValueType.Set, value: v };
 }
 
@@ -105,7 +120,7 @@ export function _function(env: Environment, fn: FunctionN): FunctionV {
 	return { type: ValueType.Function, env: env, node: fn };
 }
 
-export function _primfn(obj: FunctionObject) {
+export function _primfn(obj: FunctionObject): PFunctionV {
 	return { type: ValueType.PFunction, obj: obj };	
 }
 

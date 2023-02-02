@@ -13,11 +13,32 @@ deno 1.29
 typescript 4.9
 ```
 
-## Progress
+## Pending
 
-Lexer: almost; need string optimization and path.  
-Parser: almost; need unary operators.  
-Interpreter: in progress.  
+- deep equality for set
+- deep equality for list
+- @ notation for parameter set
+- built-in functions
+- interpolation
+- assert
+- path
+
+See full list of pending items using `ripgrep` by
+```{bash}
+rg TODO
+```
+
+## Divergence
+
+Nix: equality expression always returns false for functions.  
+Here: equality on functions is based on reference.  
+
+Nix: `inherit` keyword is used to inherit attributes: `{ inherit a b; c = 1; }`  
+Here: `{ a; b; c = 1; }`  
+
+Nix: sets cannot self-reference without the `rec` keyword.  
+Here: all sets can self-reference.  
+
 
 ## Usage
 

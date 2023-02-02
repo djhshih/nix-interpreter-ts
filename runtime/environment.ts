@@ -1,7 +1,7 @@
 import {
-	Value, ValueType,
-	StringV, ListV, FloatV, SetV,
-	_null, _boolean, _integer, _list, _string, _primfn
+	Value, ValueType, Attributes,
+	StringV, ListV, FloatV, SetV, DependentV,
+	_null, _boolean, _integer, _list, _string, _primfn, _dependent
 } from "./values.ts";
 
 import {
@@ -19,16 +19,17 @@ import {
 	_attrNames, _attrValues,
 } from "./builtins/set.ts";
 
-type Attributes = Record<string, Value>;
 
 export default class Environment {
 	public parent?: Environment;
 	private children: Attributes[];
-	private attributes: Attributes;
+	public attributes: Attributes;
+	public allowDependent: boolean;
 
-	constructor(env?: Environment) {
+	constructor(env?: Environment, allowDependent = false) {
 		this.children = [];
 		this.attributes = {};
+		this.allowDependent = allowDependent;
 
 		if (env) {
 			this.parent = env;
@@ -38,15 +39,19 @@ export default class Environment {
 	}	
 
 	public set(name: string, value: Value): Environment {
-		if (name in this.attributes) {
+		if (this.has(name, true)) {
 			throw `attribute ${name} has already been defined in the current environment`;
 		}
 		this.attributes[name] = value;	
 		return this;
 	}
-
-	public has(name: string): boolean {
-		return name in this.attributes;
+	
+	// independent: attribute must be independent
+	public has(name: string, independent: boolean = false): boolean {
+		if (name in this.attributes) {
+			return !independent || this.attributes[name].type != ValueType.Dependent;
+		}
+		return false;
 	}
 
 	// get value of attribute in current environment
@@ -78,11 +83,15 @@ export default class Environment {
 			}
 		}
 
-		throw `attribute ${name} is undefined`;
+		if (this.allowDependent) {
+			return _dependent( [ name ] );
+		} else {
+			throw `Attribute ${name} has not been defined`
+		}
 	}
 
 	// first-in last-out
-	public attach(attrs: Attributes): Attributes {
+	public attach(attrs: Attributes): Environment {
 		this.children.push(attrs);
 		return this;
 	}

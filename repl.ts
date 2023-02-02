@@ -3,6 +3,8 @@ import Interpreter from "./runtime/interpreter.ts";
 
 repl();
 
+// TODO pretty print values
+
 function repl() {
 	const parser = new Parser();
 	const interp = new Interpreter();

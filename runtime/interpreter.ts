@@ -19,12 +19,17 @@ import {
 } from "../frontend/ast.ts";
 
 import {
-	ValueType, Value,
-	FloatV, IntegerV, BooleanV, SetV,
+	ValueType, Value, Attributes,
+	FloatV, IntegerV, BooleanV, SetV, PFunctionV, FunctionV, StringV, PathV,
+	DependentV, ListV,
 	_null, _float, _integer, _boolean, _string, _set, _list, _function,
+	_dependent,
 } from "./values.ts";
 
 import Environment from "./environment.ts";
+
+import Graph from "./graph.ts";
+
 
 export default class Interpreter {
 	private env: Environment;
@@ -58,18 +63,19 @@ function evaluate(expr: ExprN, env: Environment): Value {
 			const uexpr = (expr as UnaryExprN);
 			const op = uexpr.op;
 			const right = evaluate(uexpr.right, env);
+			if (right.type == ValueType.Dependent) return right;
 			switch (op) {
 				case "-": {
 					if (right.type == ValueType.Integer) {
-						return _integer(- right.value);
+						return _integer(- (right as IntegerV).value);
 					} else if	(right.type == ValueType.Float) {
-						return _float(- right.value);
+						return _float(- (right as FloatV).value);
 					}
 					throw `Unary operator ${op} can be only be applied on a number but got ${right.type}`
 				}
 				case "!": {
 					if (right.type == ValueType.Boolean) {
-						return _boolean(! right.value);
+						return _boolean(! (right as BooleanV).value);
 					}
 					throw `Unary operator ${op} can be only be applied on a boolean but got ${right.type}`
 				}
@@ -84,7 +90,22 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		case NodeType.IfExpr: {
 			const ifexpr = (expr as IfExprN);
 			const condition = evaluate(ifexpr.condition, env);
-			if (condition.value) {
+			if (condition.type == ValueType.Dependent) {
+				const left = evaluate(ifexpr.left, env);
+				const right = evaluate(ifexpr.right, env);
+				let res = (condition as DependentV);
+				if (left.type == ValueType.Dependent) {
+					res = merge_dependents(res, left as DependentV);
+				}
+				if (right.type == ValueType.Dependent) {
+					res = merge_dependents(res, right as DependentV);
+				}
+				return res;
+			}
+			if (condition.type != ValueType.Boolean) {
+				throw `Expecting if condition to be a boolean but got ${condition.type}`;
+			}
+			if ((condition as BooleanV).value) {
 				return evaluate(ifexpr.left, env);
 			} else {
 				return evaluate(ifexpr.right, env);
@@ -94,14 +115,65 @@ function evaluate(expr: ExprN, env: Environment): Value {
 		case NodeType.List: {
 			let xs = (expr as ListN).elements;
 			let list = _list();
-			list.value = xs.map((x) => evaluate(x, env));
+			list.value = xs.map(x => evaluate(x, env));
+			if (env.allowDependent) {
+				// check for dependent values
+				let deps = list.value.filter(x => x.type == ValueType.Dependent);
+				if (deps.length > 0) {
+					return deps.reduce(
+						(acc, x) => merge_dependents(acc as DependentV, x as DependentV),
+						_dependent()
+					);
+				}
+			}
 			return list;
 		}
 
 		case NodeType.Set: {
-			// TODO implement self-reference (rec) set
-			let record = (expr as SetN).elements;
-			let set = _set();
+			let setn =(expr as SetN);
+			if (setn.rec) {
+				// self-reference (rec) set
+				let env2 = new Environment(env, true);
+				let record = setn.elements;
+				let graph = new Graph<string>();
+				// when an attr x is defined in env and re-defined in
+				// the set, we will not shadow x as intended
+				// so, we need to do a first pass through record to
+				// define all attribute as dependent
+				for (const dest in record) {
+					env2.set(dest, _dependent([dest]));
+				}
+				// define attributes
+				for (const dest in record) {
+					let value = evaluate(record[dest], env2);
+					if (value.type != ValueType.Dependent) {
+						env2.set(dest, value);
+						graph.add_indep_node(dest);
+					} else {
+						// value depends an attribute that that is yet to be defined
+						// add to dependency graph
+						graph.add_in_edges(dest, (value as DependentV).depends);
+					}
+				}
+				// resolve dependencies
+				if (graph.size() > 0) {
+					// at least one attr remains a dependent value
+					// generate dependent attrs in topological order
+					let dep_sorted = graph.sort();
+					// now, we can just evaluate the attributes in order
+					for (const dest of dep_sorted) {
+						if (env2.has(dest, true)) continue;
+						const value = evaluate(record[dest], env2);
+						env2.set(dest, value);
+					}
+				}
+
+				return _set(env2.attributes);
+			}
+
+			// non-self-referencing set
+			const record = setn.elements;
+			const set = _set();
 			for (const name in record) {
 				// set is independent of env => self-referencing is disallowed in set
 				set.value[name] = evaluate(record[name], env);
@@ -111,9 +183,41 @@ function evaluate(expr: ExprN, env: Environment): Value {
 
 		case NodeType.LetExpr: {
 			const letexpr = (expr as LetExprN);
-			let env2 = new Environment(env);
+			const env2 = new Environment(env, true);
+			const graph = new Graph<string>();
+			// set all to-be-defined attribute to dependent values
+			// so that the attributes are shadowed
 			for (const binding of letexpr.bindings) {
-				eval_binding(binding, env2);
+				env2.set(binding.identifier.name, _dependent(binding.identifier.name));
+			}
+			for (const binding of letexpr.bindings) {
+				const value = evaluate(binding.value, env2);
+				if (value.type != ValueType.Dependent) {
+					env2.set(binding.identifier.name, value);
+					graph.add_indep_node(binding.identifier.name);
+				} else {
+					// value depends an attribute that that is yet to be defined
+					// add to dependency graph
+					graph.add_in_edges(
+						binding.identifier.name,
+						(value as DependentV).depends
+					);
+				}
+			}
+			// resolve dependencies
+			if (graph.size() > 0) {
+				// at least one attr remains a dependent value
+				// generate dependent attrs in topological order
+				const dep_sorted = graph.sort();
+				// now, we can just evaluate the attributes in order
+				for (const dest of dep_sorted) {
+					if (env2.has(dest, true)) continue;
+					// we know for sure that binding exists in bindings
+					const binding =
+						letexpr.bindings.find(x => x.identifier.name == dest) as BindingN;
+					const value = evaluate(binding.value, env2);
+					env2.set(dest, value);
+				}
 			}
 			return evaluate(letexpr.body, env2);
 		}
@@ -124,6 +228,7 @@ function evaluate(expr: ExprN, env: Environment): Value {
 				selexpr.set.type == NodeType.Identifier
 				? eval_identifier(selexpr.set as IdentifierN, env)
 				: evaluate(selexpr.set, env);
+			if (set.type == ValueType.Dependent) return set;
 			if (set.type != ValueType.Set) {
 				throw `Invalid select expression; expecting set but got ${set.type}`;
 			}
@@ -136,18 +241,20 @@ function evaluate(expr: ExprN, env: Environment): Value {
 
 		case NodeType.WithExpr: {
 			const withexpr = (expr as WithExprN);
-			const set = evaluate(expr.env, env);
+			const set = evaluate(withexpr.env, env);
+			if (set.type == ValueType.Dependent) return set;
 			if (set.type != ValueType.Set) {
 				throw `Invalid with expression; expecting set but got ${set.type}`;
 			}
 			let setv = (set as SetV).value;
 			env.attach(setv);
-			let res = evaluate(expr.body, env);
-			env.dettach(setv);
+			let res = evaluate(withexpr.body, env);
+			env.dettach();
 			return res;
 		}
 
-		case NodeType.ApplyExpr: {  // TODO
+		case NodeType.ApplyExpr: {
+			return eval_apply_expr(expr as ApplyExprN, env);
 			throw `Interpretation of AST node type has yet to be implemented: ${expr.type}`
 		}
 
@@ -164,21 +271,96 @@ function eval_identifier(id: IdentifierN, env: Environment): Value {
 	return env.resolve(id.name);
 }
 
-// TODO implement self-reference in binding expression
-function eval_binding(binding: BindingN, env: Environment): Environment {
-	if (env.parent) {
-		// evaluate binding value in the parent environment
-		// this is to ensure that order of evaluation does not matter
-		// define the attribute in the specified environment
-		env.set(binding.identifier.name, evaluate(binding.value, env.parent));
-		return env;
+function eval_apply_expr(apply: ApplyExprN, env: Environment): Value {
+	let fn = evaluate(apply.fn, env);
+	// evaluate the argument in the current environment
+	let arg = evaluate(apply.arg, env);
+
+	if (fn.type == ValueType.Dependent) {
+		if (arg.type == ValueType.Dependent) {
+			return merge_dependents(fn as DependentV, arg as DependentV);
+		}
+		return fn;
 	}
-	throw `Evaluation is not permitted in the global environment`;
+
+	switch (fn.type) {
+		case ValueType.Function: {
+			const fnv = (fn as FunctionV);
+			// private environment for the function using the enclosed
+			// environment as the parent
+			// we don't use the enclosed directly because we do not
+			// want to modify this environment (where fn was defined)
+			const env2 = new Environment(fnv.env);
+			const fnn = fnv.node;
+
+			switch (fnn.param.type) {
+				case NodeType.Identifier: {
+					env2.set((fnn.param as IdentifierN).name, arg);
+					return evaluate(fnn.body, env2);
+				}
+
+				case NodeType.Params: {
+					if (arg.type != ValueType.Set) {
+						throw `Function expects a set but got ${arg.type}`;
+					}
+					const args = (arg as SetV).value;
+					const params = (fnn.param as ParamsN);
+					// assign values to each parameter in the private environment
+					// Object.keys( params.optional ) contain all the parameter names
+					for (const name in params.optional) {
+						if (name in args) {
+							// define the parameter using the argument
+							env2.set(name, args[name]);
+						} else if (name in params.defaults) {
+							// define the parameter using the default expression evaluated
+							// in the enclosed environment
+							env2.set(name, evaluate(params.defaults[name], fnv.env));
+						} else {
+							throw `Function expects ${name} but it is missing`
+						}
+					}
+					// evaluate the result in the private environment
+					return evaluate(fnn.body, env2);
+				}
+					
+				default:
+					throw `Function unexpectedly have parameter node type ${fnn.param.type}`;
+			}
+			// evaluate the function body in the enclosed environment
+			throw `Application of user-defined function is not supported`
+			break;
+		}
+
+		case ValueType.PFunction: {
+			// primitive function can be called directly
+			return (fn as PFunctionV).obj(arg, env);
+			break;
+		}
+
+		default:
+			throw `Expecting to apply function but got ${fn.type}`;
+	}
+}
+
+function merge_dependents(left: DependentV, right: DependentV): DependentV {
+		let depv = _dependent( left.depends );
+		for (const d of right.depends) {
+			depv.depends.add(d);
+		}
+		return depv;
 }
 
 function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	const left = evaluate(op2.left, env);
 	const op = op2.op;
+
+	if (left.type == ValueType.Dependent) {
+		const right = evaluate(op2.right, env);
+		if (right.type == ValueType.Dependent) {
+			return merge_dependents(left as DependentV, right as DependentV);
+		}
+		return left;
+	}
 
 	// logical operations
 	switch (op) {
@@ -210,10 +392,39 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 	}
 
 	// equality operations
-	// TODO == !=
+	if (op == "==") {
+		const right = evaluate(op2.right, env);
+		return _boolean( op_equality(left, right) );
+	}
 
-	// string/path concatenations
-	// TODO ++
+	// inequality operations
+	if (op == "!=") {
+		const right = evaluate(op2.right, env);
+		return _boolean( ! op_equality(left, right) );
+	}
+
+	// string and path concatenations
+	if (op == "+") {
+	 	if (left.type == ValueType.String) {
+			const right = evaluate(op2.right, env);
+			if (right.type == ValueType.String) {
+				return _string((left as StringV).value + (right as StringV).value);
+			} else if (right.type == ValueType.Path) {
+				return _string((left as StringV).value + (right as PathV).value);
+			} else {
+				throw `Path can only be concatenation with another path or string but got ${right.type}`
+			}
+		} else if (left.type == ValueType.Path) {
+			const right = evaluate(op2.right, env);
+			if (right.type == ValueType.Path) {
+				return _string((left as PathV).value + (right as PathV).value);
+			} else if (right.type == ValueType.String) {
+				return _string((left as PathV).value + (right as StringV).value);
+			} else {
+				throw `Path can only be concatenation with another path or string but got ${right.type}`
+			}
+		}
+	}
 
 	// arithmetic and comparison operations
 	switch (op) {
@@ -265,6 +476,47 @@ function eval_binary_expr(op2: BinaryExprN, env: Environment): Value {
 				throw `Expecting right operand to be a number for operator ${op} but got ${right.type}`;
 			}
 			return _boolean(op_comparative(op, leftv, rightv));
+		}
+	}
+	
+	// concatentation operation
+	if (op == "++") {
+		if (left.type == ValueType.List) {
+			const right = evaluate(op2.right, env);
+			if (right.type == ValueType.List) {
+				return _list( 
+					(left as ListV).value.concat( (right as ListV).value )
+				);
+			} else {
+				throw `Expecting right operand to be a list for operator ${op} but got ${left.type}`;
+			}
+		} else {
+			throw `Expecting left operand to be a list for operator ${op} but got ${left.type}`;
+		}
+	}
+
+	// update operation
+	// in "a // b", overwrite attributes in a with attributes in b
+	if (op == "//") {
+		if (left.type == ValueType.Set) {
+			let leftv = (left as SetV).value;
+			const right = evaluate(op2.right, env);
+			if (right.type == ValueType.Set) {
+				let rightv = (right as SetV).value;
+				// update or add attributes in left using right
+				let res: Attributes = {};
+				for (const key in leftv) {
+					res[key] = leftv[key];
+				}
+				for (const key in rightv) {
+					res[key] = rightv[key];
+				}
+				return _set(res);
+			} else {
+				throw `Expecting right operand to be a set for operator ${op} but got ${left.type}`;
+			}
+		} else {
+			throw `Expecting left operand to be a set for operator ${op} but got ${left.type}`;
 		}
 	}
 
@@ -335,3 +587,16 @@ function op_logical(op: string, left: boolean, right: boolean): boolean {
 	}
 }
 
+// FIXME implement deep equality for list and set
+function op_equality(left: Value, right: Value): boolean {
+	if (
+		left.type == ValueType.Function || left.type == ValueType.PFunction ||
+		right.type == ValueType.Function || right.type == ValueType.PFunction
+	) {
+		// check for reference identity
+		// NB  original nix seems to always return false on equality
+		//     operations involving functions
+		return left == right;
+	}
+	return (left as any).value == (right as any).value;
+}

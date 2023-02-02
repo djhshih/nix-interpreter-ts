@@ -50,6 +50,7 @@ export interface FunctionN extends ExprN {
 
 export interface LetExprN extends ExprN {
 	type: NodeType.LetExpr;
+	// TODO refactor as Record
 	bindings: BindingN[];
 	body: ExprN;
 }
@@ -86,7 +87,7 @@ export interface ListN extends ExprN {
 
 export interface SetN extends ExprN {
 	type: NodeType.Set;
-	elements: Record<string, ExprN>;	
+	elements: Record<string, ExprN>;
 	rec: boolean;
 }
 
@@ -95,7 +96,7 @@ export interface ParamsN extends ExprN {
 	// whether each parameter is optional
 	optional: Record<string, boolean>;
 	// default values for optional parameters
-	values: Record<string, ExprN>;
+	defaults: Record<string, ExprN>;
 	// whether to allow extra arguments
 	open: boolean;
 }

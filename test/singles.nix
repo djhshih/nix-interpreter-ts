@@ -31,3 +31,29 @@ let s = { x = 1; }; in s ? x -> s.x > 0
 -3
 -9 / 3
 1 + (-4 / 3)
+0 == 0
+0 != 0
+4 == 4.0
+4 != 4.0
+5 == 5.00001
+5 != 5.00001
+"apple" == "apple"
+"apple" != "apple"
+"apple" == "orange"
+let x = 1; in x == 1
+let x = 2; in x != 0
+[ 1 2 3 ] == [ 1 2 3 ]
+[ 1 2 3 ] != [ 2 3 4 5 ]
+{ x = 1; } == { x = 1; }
+{ x = 1; y = 1; } == { x = 1; }
+# comment
+1 # comment
+1 /* comment */ 1
+/* comment */
+{ x = 4; y = 2; z = 3; } // { w = 0; x = 1; }
+[ (1 + 2) 3 ]
+[1 2 3] ++ [4 5 6]
+let x = 10; in rec { z = x + 1; x = 2; y = z + 10; }
+let x = 10; in { z = x + 1; x = 2; y = z + 10; }
+let x = 10; in let z = x + 1; x = 2; y = z + 10; in [z x y]
+isNull x
