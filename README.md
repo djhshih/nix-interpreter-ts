@@ -36,9 +36,6 @@ Here: equality on functions is based on reference.
 Nix: `inherit` keyword is used to inherit attributes: `{ inherit a b; c = 1; }`  
 Here: `{ a; b; c = 1; }`  
 
-Nix: sets cannot self-reference without the `rec` keyword.  
-Here: all sets can self-reference.  
-
 
 ## Usage
 
